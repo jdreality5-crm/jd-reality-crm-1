@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Jay Dwarkadhish Real Estate — CRM v4</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --blue:#007fff;--blue2:#3399ff;--blue3:#e6f3ff;--blue4:#cce7ff;
+  --dark:#0a1628;--white:#ffffff;--gray:#f5f8fc;--gray2:#e8eef5;
+  --gray3:#b0bec5;--text:#1a2332;--text2:#546e7a;--red:#f44336;
+  --green:#00897b;--orange:#ff6d00;--purple:#6c3fc7;
+  --shadow:0 2px 16px rgba(0,127,255,0.10);--shadow2:0 4px 32px rgba(0,127,255,0.16);
+}
+body{font-family:'Segoe UI',Arial,sans-serif;background:var(--gray);color:var(--text);min-height:100vh;}
+
+/* NOTIFICATION BANNER */
+#notif-banner{position:fixed;top:0;left:0;right:0;z-index:9999;display:none;background:linear-gradient(90deg,#e65100,#ff6d00);color:#fff;padding:12px 20px;font-size:14px;font-weight:700;align-items:center;gap:12px;box-shadow:0 4px 20px rgba(255,109,0,0.4);}
+#notif-banner.open{display:flex;}
+.notif-close{background:rgba(255,255,255,0.25);border:none;color:#fff;font-size:18px;cursor:pointer;width:28px;height:28px;border-radius:50%;margin-left:auto;display:flex;align-items:center;justify-content:center;}
+.notif-pulse{width:10px;height:10px;border-radius:50%;background:#fff;animation:pulse 1.2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(1.4);}}
+
+/* SYNC INDICATOR */
+#sync-indicator{position:fixed;bottom:16px;right:16px;z-index:9000;background:var(--green);color:#fff;border-radius:20px;padding:6px 14px;font-size:11px;font-weight:700;display:none;align-items:center;gap:6px;box-shadow:0 2px 12px rgba(0,0,0,0.2);}
+#sync-indicator.show{display:flex;}
+
+/* LOGIN */
+#login-screen{display:flex;min-height:100vh;background:var(--dark);}
+.login-left{flex:1;background:linear-gradient(160deg,#0a1628 0%,#0d3060 50%,#007fff22 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 40px;position:relative;overflow:hidden;}
+.login-left::before{content:'';position:absolute;top:-80px;right:-80px;width:320px;height:320px;border-radius:50%;background:rgba(0,127,255,0.08);pointer-events:none;}
+.login-left::after{content:'';position:absolute;bottom:-60px;left:-60px;width:240px;height:240px;border-radius:50%;background:rgba(0,127,255,0.06);pointer-events:none;}
+.login-brand-logo{width:200px;margin-bottom:32px;filter:drop-shadow(0 4px 24px rgba(0,127,255,0.3));}
+.login-brand-tagline{font-size:16px;color:#fff;font-weight:700;letter-spacing:1px;text-align:center;margin-bottom:10px;}
+.login-brand-sub{font-size:12px;color:rgba(255,255,255,0.5);text-align:center;line-height:1.8;max-width:260px;}
+.login-brand-stats{display:flex;gap:28px;margin-top:36px;}
+.login-stat{text-align:center;}
+.login-stat-val{font-size:22px;font-weight:800;color:var(--blue2);}
+.login-stat-lbl{font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+.login-right{width:420px;display:flex;align-items:center;justify-content:center;background:#fff;padding:48px 44px;}
+.login-box{width:100%;text-align:center;}
+.login-box-logo{width:130px;margin-bottom:20px;}
+.login-company{font-size:18px;font-weight:800;color:var(--dark);letter-spacing:0.3px;}
+.login-tagline{font-size:10px;color:var(--blue);letter-spacing:2px;text-transform:uppercase;margin-bottom:28px;margin-top:4px;}
+.login-box h2{font-size:13px;font-weight:600;color:var(--text2);margin-bottom:20px;}
+.login-inp{width:100%;padding:11px 14px;border:2px solid var(--gray2);border-radius:10px;font-size:14px;margin-bottom:12px;outline:none;transition:border 0.2s;background:#fafcff;}
+.login-inp:focus{border-color:var(--blue);background:#fff;}
+.login-btn{width:100%;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:0.5px;transition:background 0.2s;}
+.login-btn:hover{background:#0066cc;}
+.login-error{color:var(--red);font-size:12px;margin-top:8px;display:none;padding:8px 12px;background:#fff5f5;border-radius:7px;}
+.login-footer-info{margin-top:28px;padding-top:20px;border-top:1px solid var(--gray2);font-size:11px;color:var(--gray3);line-height:1.8;}
+@media(max-width:768px){
+  #login-screen{flex-direction:column;}
+  .login-left{padding:32px 24px;flex:none;}
+  .login-brand-logo{width:140px;margin-bottom:20px;}
+  .login-brand-stats{gap:20px;}
+  .login-right{width:100%;padding:28px 22px 40px;}
+}
+
+/* APP LAYOUT */
+#app{display:none;min-height:100vh;}
+.layout{display:flex;min-height:100vh;}
+.sidebar{width:230px;background:var(--dark);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:200;transition:transform 0.28s cubic-bezier(.4,0,.2,1);}
+.sb-logo{padding:20px 18px 14px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.sb-logo-row{display:flex;align-items:center;gap:10px;}
+.sb-logo-icon{font-size:26px;}
+.sb-logo-text{font-size:13px;font-weight:700;color:#fff;line-height:1.3;}
+.sb-logo-sub{font-size:9px;color:var(--blue2);letter-spacing:1.5px;text-transform:uppercase;}
+.sb-user{padding:14px 18px;border-bottom:1px solid rgba(255,255,255,0.07);display:flex;align-items:center;gap:12px;cursor:pointer;transition:background 0.15s;}
+.sb-user:hover{background:rgba(0,127,255,0.08);}
+.sb-av{width:38px;height:38px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden;border:2px solid rgba(255,255,255,0.2);}
+.sb-av img{width:100%;height:100%;object-fit:cover;}
+.sb-uname{font-size:13px;color:#fff;font-weight:600;}
+.sb-urole{font-size:11px;color:var(--blue2);}
+nav{flex:1;padding:12px 0;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 20px;color:#90a4ae;font-size:13px;cursor:pointer;border-left:3px solid transparent;transition:all 0.15s;}
+.nav-item:hover{background:rgba(255,255,255,0.05);color:#fff;}
+.nav-item.active{background:rgba(0,127,255,0.18);color:var(--blue2);border-left-color:var(--blue);font-weight:700;}
+.nav-icon{font-size:17px;width:22px;text-align:center;}
+.sb-footer{padding:14px 18px;border-top:1px solid rgba(255,255,255,0.07);}
+.logout-btn{width:100%;padding:9px;background:rgba(244,67,54,0.1);color:#ef9a9a;border:1px solid rgba(244,67,54,0.25);border-radius:8px;font-size:13px;cursor:pointer;transition:all 0.15s;}
+.logout-btn:hover{background:rgba(244,67,54,0.22);color:#fff;}
+.main{margin-left:230px;flex:1;display:flex;flex-direction:column;min-width:0;}
+.topbar{background:#fff;border-bottom:2px solid var(--blue3);padding:0 24px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,127,255,0.07);}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:7px;background:none;border:none;border-radius:8px;}
+.hamburger:hover{background:var(--blue3);}
+.hamburger span{display:block;width:22px;height:2.5px;background:var(--blue);border-radius:2px;}
+.topbar-title{font-size:18px;font-weight:800;color:var(--dark);}
+.topbar-right{display:flex;align-items:center;gap:14px;}
+.topbar-date{font-size:12px;color:var(--gray3);font-weight:500;}
+.notif-bell{background:none;border:none;font-size:20px;cursor:pointer;position:relative;padding:4px;}
+.notif-badge{position:absolute;top:0;right:0;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center;}
+.notif-badge.show{display:flex;}
+.topbar-av{width:36px;height:36px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;overflow:hidden;border:2px solid var(--blue3);transition:border-color 0.2s;}
+.topbar-av:hover{border-color:var(--blue);}
+.topbar-av img{width:100%;height:100%;object-fit:cover;}
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:150;}
+.sb-overlay.open{display:block;}
+.page-content{padding:22px 24px;flex:1;}
+.page-sec{display:none;}
+.page-sec.active{display:block;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:14px;margin-bottom:22px;}
+.stat-card{background:#fff;border-radius:12px;padding:18px 20px;border:1.5px solid var(--blue3);box-shadow:var(--shadow);}
+.stat-label{font-size:11px;color:var(--gray3);text-transform:uppercase;letter-spacing:0.7px;margin-bottom:8px;font-weight:600;}
+.stat-val{font-size:28px;font-weight:800;}
+.stat-val.blue{color:var(--blue);}
+.stat-val.green{color:var(--green);}
+.stat-val.red{color:var(--red);}
+.stat-val.orange{color:var(--orange);}
+
+/* TABLE */
+.table-wrap{background:#fff;border-radius:12px;border:1.5px solid var(--blue3);overflow:hidden;box-shadow:var(--shadow);}
+.table-toolbar{padding:14px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1.5px solid var(--blue3);background:#fafcff;}
+.search-box{position:relative;display:flex;align-items:center;}
+.search-box input{padding:8px 12px 8px 34px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;width:210px;outline:none;background:#fafcff;}
+.search-box input:focus{border-color:var(--blue);}
+.search-box .si{position:absolute;left:10px;color:var(--gray3);font-size:15px;}
+.filter-sel{padding:8px 10px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;outline:none;background:#fafcff;color:var(--text);}
+.filter-sel:focus{border-color:var(--blue);}
+.btn-blue{padding:8px 16px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background 0.15s;}
+.btn-blue:hover{background:#0066cc;}
+.btn-outline{padding:8px 16px;background:#fff;color:var(--blue);border:2px solid var(--blue);border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all 0.15s;}
+.btn-outline:hover{background:var(--blue3);}
+.btn-green{padding:8px 16px;background:var(--green);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:background 0.15s;}
+.btn-green:hover{background:#00695c;}
+.lead-count{padding:8px 18px;font-size:12px;font-weight:700;color:var(--blue);border-bottom:1px solid var(--blue3);background:#f0f7ff;}
+table{width:100%;border-collapse:collapse;}
+thead th{background:var(--dark);color:#fff;padding:10px 14px;text-align:left;font-size:12px;font-weight:700;white-space:nowrap;}
+tbody tr{border-bottom:1px solid var(--blue3);}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#f5f9ff;}
+tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
+.lead-name{color:var(--blue);cursor:pointer;font-weight:700;}
+.lead-name:hover{text-decoration:underline;}
+.src-tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;margin-top:3px;}
+.src-mb{background:#FF6B2B;color:#fff;}
+.src-99{background:var(--red);color:#fff;}
+.src-jd{background:var(--blue);color:#fff;}
+.src-ref{background:var(--green);color:#fff;}
+.src-walk{background:var(--purple);color:#fff;}
+.status-pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.s-new{background:#e3f2fd;color:#1565c0;}
+.s-active{background:#e8f5e9;color:#2e7d32;}
+.s-visit{background:#fff3e0;color:#e65100;}
+.s-nego{background:#f3e5f5;color:#6a1b9a;}
+.s-closed{background:#e0f2f1;color:#00695c;}
+.s-lost{background:#ffebee;color:#c62828;}
+.view-btn{background:var(--blue3);color:var(--blue);border:none;border-radius:50%;width:30px;height:30px;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center;transition:background 0.15s;}
+.view-btn:hover{background:var(--blue4);}
+
+/* MODALS */
+.overlay{display:none;position:fixed;inset:0;background:rgba(10,22,40,0.55);z-index:500;align-items:center;justify-content:center;padding:16px;}
+.overlay.open{display:flex;}
+.modal{background:#fff;border-radius:16px;width:100%;max-width:580px;max-height:92vh;overflow-y:auto;box-shadow:0 12px 60px rgba(0,0,0,0.22);}
+.modal-hdr{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:2px solid var(--blue3);background:linear-gradient(90deg,var(--dark) 0%,#0d3060 100%);border-radius:16px 16px 0 0;position:sticky;top:0;z-index:10;}
+.modal-hdr h3{font-size:15px;font-weight:700;color:#fff;}
+.modal-close{background:rgba(255,255,255,0.12);border:none;color:#fff;font-size:18px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{background:rgba(255,255,255,0.25);}
+.modal-body{padding:22px;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
+.fr{margin-bottom:14px;}
+.fr label{display:block;font-size:11px;color:var(--text2);font-weight:700;margin-bottom:5px;text-transform:uppercase;letter-spacing:0.5px;}
+.fr input,.fr select,.fr textarea{width:100%;padding:9px 11px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;outline:none;font-family:inherit;background:#fafcff;color:var(--text);}
+.fr input:focus,.fr select:focus,.fr textarea:focus{border-color:var(--blue);background:#fff;}
+.comment-log{border:1.5px solid var(--blue3);border-radius:8px;padding:12px;background:#f5f9ff;font-size:12px;color:var(--text2);max-height:160px;overflow-y:auto;line-height:1.8;margin-bottom:10px;}
+.c-entry{padding:4px 0;border-bottom:1px solid var(--blue3);font-size:12px;}
+.c-entry:last-child{border:none;}
+.c-by{font-weight:700;color:var(--blue);}
+.c-dt{color:var(--gray3);font-size:11px;}
+.modal-foot{display:flex;gap:8px;justify-content:flex-end;padding:14px 22px;border-top:1.5px solid var(--blue3);background:#fafcff;border-radius:0 0 16px 16px;position:sticky;bottom:0;}
+.btn-gray{padding:9px 18px;background:var(--gray2);color:var(--text2);border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;}
+.btn-gray:hover{background:#dde6ef;}
+.btn-red{padding:9px 18px;background:var(--red);color:#fff;border:none;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600;}
+.req{color:var(--red);}
+.section-head{font-size:14px;font-weight:800;color:var(--dark);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+
+/* TEAM */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;}
+.team-card{background:#fff;border-radius:14px;border:1.5px solid var(--blue3);padding:24px 18px;text-align:center;box-shadow:var(--shadow);}
+.team-av{width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:700;color:#fff;margin:0 auto 12px;overflow:hidden;}
+.team-av img{width:100%;height:100%;object-fit:cover;}
+.team-nm{font-size:16px;font-weight:700;color:var(--dark);}
+.team-role{font-size:12px;color:var(--gray3);margin-bottom:10px;font-weight:600;}
+.team-stat{font-size:13px;color:var(--text2);padding:3px 0;}
+.team-stat span{font-weight:700;color:var(--blue);}
+.badge-admin{display:inline-block;padding:2px 10px;background:var(--blue);color:#fff;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:1px;}
+
+/* FOLLOWUPS */
+.fu-card{background:#fff;border-radius:12px;border:1.5px solid var(--blue3);padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);}
+.fu-date-box{border-radius:10px;padding:10px 14px;text-align:center;min-width:52px;flex-shrink:0;}
+.fu-day{font-size:22px;font-weight:800;}
+.fu-mon{font-size:10px;font-weight:700;}
+.fu-time-badge{background:var(--dark);color:var(--blue2);border-radius:8px;padding:3px 8px;font-size:11px;font-weight:700;margin-top:4px;display:inline-block;}
+.priority-ring{border:3px solid var(--orange);animation:ring 1s infinite;}
+@keyframes ring{0%,100%{border-color:var(--orange);}50%{border-color:transparent;}}
+
+/* PROFILE */
+.profile-pic-large{width:96px;height:96px;border-radius:50%;object-fit:cover;border:3px solid var(--blue);margin:0 auto;display:block;}
+.profile-pic-ph{width:96px;height:96px;border-radius:50%;background:var(--blue);color:#fff;font-weight:800;font-size:30px;display:flex;align-items:center;justify-content:center;margin:0 auto;border:3px solid var(--blue3);}
+.upload-photo-btn{display:inline-block;margin-top:10px;padding:7px 16px;background:var(--blue3);border-radius:8px;font-size:12px;cursor:pointer;color:var(--blue);border:1.5px solid var(--blue4);font-weight:700;}
+.upload-photo-btn:hover{background:var(--blue4);}
+
+/* BACKUP */
+.backup-card{background:#fff;border-radius:14px;border:1.5px solid var(--blue3);padding:22px 24px;margin-bottom:16px;box-shadow:var(--shadow);}
+.backup-card h4{font-size:14px;font-weight:700;color:var(--dark);margin-bottom:8px;}
+.backup-card p{font-size:12px;color:var(--text2);margin-bottom:14px;line-height:1.6;}
+.gdrive-steps{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+.gdrive-step{display:flex;align-items:center;gap:10px;background:#f5f9ff;border-radius:8px;padding:10px 14px;font-size:13px;}
+.gdrive-step-num{background:var(--blue);color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;flex-shrink:0;}
+.backup-last{font-size:11px;color:var(--green);font-weight:700;margin-top:8px;}
+
+/* ADMIN TABLE */
+.admin-table{width:100%;border-collapse:collapse;font-size:13px;}
+.admin-table th{background:var(--blue3);color:var(--blue);padding:9px 14px;text-align:left;font-weight:700;font-size:12px;}
+.admin-table td{padding:9px 14px;border-bottom:1px solid var(--blue3);}
+.admin-table tr:last-child td{border:none;}
+.admin-table tr:hover td{background:#f5f9ff;}
+.icon-btn{background:none;border:none;cursor:pointer;font-size:16px;padding:3px 6px;border-radius:5px;}
+.icon-btn:hover{background:var(--blue3);}
+
+/* TABS */
+.tabs{display:flex;gap:0;border-bottom:2px solid var(--blue3);margin-bottom:20px;}
+.tab{padding:10px 20px;font-size:13px;font-weight:700;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab:hover{color:var(--blue);}
+
+/* RESET PASS MODAL */
+#reset-overlay .modal{max-width:400px;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{width:260px;transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .hamburger{display:flex;}
+  .fg{grid-template-columns:1fr;}
+  .fg3{grid-template-columns:1fr;}
+  .stats-grid{grid-template-columns:repeat(2,1fr);}
+  .page-content{padding:14px 14px;}
+  .topbar{padding:0 14px;}
+  .table-toolbar{flex-direction:column;align-items:stretch;}
+  .search-box{width:100%;}
+  .search-box input{width:100%;}
+  .filter-sel{width:100%;}
+  .topbar-date{display:none;}
+  table{font-size:12px;}
+  thead th,tbody td{padding:8px 10px;}
+  .modal{max-width:100%;margin:0;border-radius:16px;}
+  .fu-card{flex-direction:column;align-items:flex-start;}
+}
+@media(min-width:769px){.sidebar{transform:translateX(0) !important;}}
+</style>
+</head>
+<body>
+
+<!-- PRIORITY NOTIFICATION BANNER -->
+<div id="notif-banner">
+  <div class="notif-pulse"></div>
+  <span id="notif-text">⏰ Follow-up alert!</span>
+  <button class="notif-close" onclick="document.getElementById('notif-banner').classList.remove('open')">✕</button>
+</div>
+
+<!-- SYNC INDICATOR -->
+<div id="sync-indicator">🔄 <span>Data synced</span></div>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-left">
+    <img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/04/JD-logo-01-white.png"
+         class="login-brand-logo" alt="Jay Dwarkadhish Real Estate"
+         onerror="this.style.display='none';document.getElementById('login-logo-fallback').style.display='block'">
+    <div id="login-logo-fallback" style="display:none;font-size:48px;margin-bottom:24px;">🏠</div>
+    <div class="login-brand-tagline">#1 Real Estate Company</div>
+    <div class="login-brand-tagline" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.6);margin-top:-8px;">in Ahmedabad</div>
+    <div class="login-brand-sub" style="margin-top:16px;">A 212, West Face, Hebatpur Road,<br>Thaltej, Ahmedabad — 380059<br><br>📞 +91 9998492878<br>🌐 jaydwarkadhishrealestate.com</div>
+    <div class="login-brand-stats">
+      <div class="login-stat"><div class="login-stat-val">10+</div><div class="login-stat-lbl">Years</div></div>
+      <div class="login-stat"><div class="login-stat-val">500+</div><div class="login-stat-lbl">Properties</div></div>
+      <div class="login-stat"><div class="login-stat-val">1000+</div><div class="login-stat-lbl">Clients</div></div>
+    </div>
+  </div>
+  <div class="login-right">
+    <div class="login-box">
+      <img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/04/JD-LOGO-Website-Copy.png" class="login-box-logo" alt="JD Logo" onerror="this.style.display='none'">
+      <div class="login-company">JAY DWARKADHISH</div>
+      <div class="login-tagline">Real Estate — CRM Portal</div>
+      <h2>Sign in to your account</h2>
+      <input type="email" id="login-email" class="login-inp" placeholder="📧 Email address" autocomplete="email">
+      <input type="password" id="login-pass" class="login-inp" placeholder="🔒 Password">
+      <div class="login-error" id="login-err">❌ Invalid email or password.</div>
+      <button class="login-btn" onclick="doLogin()">Sign In →</button>
+      <div class="login-footer-info">🔐 Secure access for authorized team members only.<br>Contact admin to get your login credentials.</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="layout">
+    <div class="sb-overlay" id="sb-overlay" onclick="closeSidebar()"></div>
+    <div class="sidebar" id="sidebar">
+      <div class="sb-logo">
+        <div class="sb-logo-row">
+          <img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/04/JD-logo-01-white.png" alt="" style="height:36px;width:auto;" onerror="this.style.display='none';document.getElementById('sb-logo-fallback').style.display='flex'">
+          <div id="sb-logo-fallback" style="display:none;align-items:center;gap:10px;">
+            <div class="sb-logo-icon">🏠</div>
+            <div><div class="sb-logo-text">Jay Dwarkadhish</div><div class="sb-logo-sub">Real Estate CRM</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="sb-user" onclick="openProfile()">
+        <div class="sb-av" id="sb-av"></div>
+        <div><div class="sb-uname" id="sb-uname">—</div><div class="sb-urole" id="sb-urole">—</div></div>
+      </div>
+      <nav>
+        <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">📊</span><span>Dashboard</span></div>
+        <div class="nav-item" onclick="showPage('enquiries',this)"><span class="nav-icon">📋</span><span>Enquiries</span></div>
+        <div class="nav-item" onclick="showPage('followups',this)"><span class="nav-icon">🔔</span><span>Follow-ups</span></div>
+        <div class="nav-item" onclick="showPage('team',this)"><span class="nav-icon">👥</span><span>Team</span></div>
+        <div class="nav-item" id="admin-nav" onclick="showPage('admin',this)" style="display:none"><span class="nav-icon">⚙️</span><span>Admin</span></div>
+      </nav>
+      <div class="sb-footer"><button class="logout-btn" onclick="doLogout()">🚪 Sign Out</button></div>
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+          <div class="topbar-title" id="topbar-title">Dashboard</div>
+        </div>
+        <div class="topbar-right">
+          <span class="topbar-date" id="topbar-date"></span>
+          <button class="notif-bell" onclick="showPage('followups',document.querySelector('.nav-item:nth-child(3)'))" title="Follow-up alerts">
+            🔔<span class="notif-badge" id="notif-badge">0</span>
+          </button>
+          <div class="topbar-av" id="topbar-av" onclick="openProfile()" title="Profile"></div>
+        </div>
+      </div>
+
+      <div class="page-content">
+
+        <!-- DASHBOARD -->
+        <div id="page-dashboard" class="page-sec active">
+          <div class="stats-grid" id="dash-stats"></div>
+          <div class="section-head">🔔 Today's Priority Follow-ups</div>
+          <div id="dash-priority" style="margin-bottom:22px;"></div>
+          <div class="section-head">📋 Recent Enquiries</div>
+          <div class="table-wrap" style="overflow-x:auto;">
+            <table><thead><tr><th>Name</th><th>Mobile</th><th>Source</th><th>Status</th><th>Assigned To</th><th>Next Follow-up</th></tr></thead>
+            <tbody id="dash-recent"></tbody></table>
+          </div>
+        </div>
+
+        <!-- ENQUIRIES -->
+        <div id="page-enquiries" class="page-sec">
+          <div class="table-wrap">
+            <div class="table-toolbar">
+              <div class="search-box"><span class="si">🔍</span><input type="text" placeholder="Search name, mobile, area..." id="eq-search" oninput="renderEnq()"></div>
+              <select class="filter-sel" id="eq-status" onchange="renderEnq()">
+                <option value="">All Statuses</option>
+                <option>New</option><option>Active</option><option>Site Visit</option><option>Negotiation</option><option>Closed</option><option>Lost</option>
+              </select>
+              <select class="filter-sel" id="eq-source" onchange="renderEnq()">
+                <option value="">All Sources</option>
+                <option>Magicbricks</option><option>99acres</option><option>JD Website</option><option>Reference</option><option>Walk-in</option>
+              </select>
+              <select class="filter-sel" id="eq-assign" onchange="renderEnq()"><option value="">All Agents</option></select>
+              <button class="btn-blue" onclick="openNewEnq()">+ New Enquiry</button>
+            </div>
+            <div class="lead-count" id="eq-count">Total: 0 leads</div>
+            <div style="overflow-x:auto;">
+              <table><thead><tr><th>Name</th><th>Mobile</th><th>Assigned To</th><th>Status</th><th>Next Follow-up</th><th>Last Comment</th><th></th></tr></thead>
+              <tbody id="eq-tbody"></tbody></table>
+            </div>
+          </div>
+        </div>
+
+        <!-- FOLLOW-UPS -->
+        <div id="page-followups" class="page-sec">
+          <div id="fu-content"></div>
+        </div>
+
+        <!-- TEAM -->
+        <div id="page-team" class="page-sec">
+          <div class="team-grid" id="team-grid"></div>
+        </div>
+
+        <!-- ADMIN -->
+        <div id="page-admin" class="page-sec">
+          <div class="tabs">
+            <div class="tab active" onclick="switchAdminTab('members',this)">👥 Team Members</div>
+            <div class="tab" onclick="switchAdminTab('backup',this)">💾 Backup & Export</div>
+          </div>
+
+          <!-- MEMBERS TAB -->
+          <div id="admin-members">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+              <div class="section-head" style="margin:0;">Team Members</div>
+              <button class="btn-blue" onclick="openAddMember()">+ Add Member</button>
+            </div>
+            <div class="backup-card" style="padding:0;overflow:hidden;">
+              <table class="admin-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Type</th><th>Actions</th></tr></thead>
+                <tbody id="members-tbody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- BACKUP TAB -->
+          <div id="admin-backup" style="display:none;">
+
+            <div class="backup-card">
+              <h4>📥 Export to Excel (.xlsx)</h4>
+              <p>Download all CRM lead data as a proper Excel spreadsheet. Opens in Microsoft Excel or Google Sheets.</p>
+              <button class="btn-blue" onclick="exportExcel()">⬇️ Download Excel (.xlsx)</button>
+            </div>
+
+            <div class="backup-card">
+              <h4>📤 Export to CSV</h4>
+              <p>Download all leads as a CSV file — compatible with any spreadsheet tool.</p>
+              <button class="btn-outline" onclick="exportCSV()">⬇️ Download CSV</button>
+            </div>
+
+            <!-- GOOGLE DRIVE BACKUP - WhatsApp style -->
+            <div class="backup-card" style="border:2px solid #34A853;">
+              <h4 style="color:#34A853;">☁️ Google Drive Backup</h4>
+              <p>Automatically export your CRM data and back it up to Google Drive — just like WhatsApp does! Follow these steps:</p>
+              <div class="gdrive-steps">
+                <div class="gdrive-step">
+                  <div class="gdrive-step-num">1</div>
+                  <span>Click <strong>"Create Backup File"</strong> — a JSON backup file will download to your device</span>
+                </div>
+                <div class="gdrive-step">
+                  <div class="gdrive-step-num">2</div>
+                  <span>Click <strong>"Open Google Drive"</strong> — Google Drive opens in a new tab</span>
+                </div>
+                <div class="gdrive-step">
+                  <div class="gdrive-step-num">3</div>
+                  <span>In Google Drive, click <strong>"+ New → File Upload"</strong> and select the downloaded backup file</span>
+                </div>
+                <div class="gdrive-step">
+                  <div class="gdrive-step-num">4</div>
+                  <span>Done! Your backup is safely stored on Google Drive ✅</span>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn-green" onclick="gDriveBackup()">☁️ Step 1: Create Backup File</button>
+                <button class="btn-blue" onclick="openGDrive()">📁 Step 2: Open Google Drive ↗</button>
+              </div>
+              <div class="backup-last" id="gdrive-last-backup" style="display:none;margin-top:10px;"></div>
+              <div style="margin-top:12px;padding:10px;background:#f1f8ff;border-radius:8px;font-size:11px;color:var(--text2);">
+                💡 <strong>Tip:</strong> Set a reminder to backup every week, just like WhatsApp's weekly backup reminder. Your data stays safe even if you clear the browser.
+              </div>
+            </div>
+
+            <div class="backup-card">
+              <h4>🔄 Import / Restore Backup</h4>
+              <p>Import a previously exported JSON backup file to restore CRM data on any device.</p>
+              <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button class="btn-outline" onclick="exportJSON()">⬇️ Download JSON Backup</button>
+                <label class="btn-blue" style="cursor:pointer;">📂 Import JSON <input type="file" accept=".json" style="display:none" onchange="importJSON(event)"></label>
+              </div>
+            </div>
+
+            <div class="backup-card" style="background:#fff3e0;border-color:#ff6d00;">
+              <h4 style="color:#e65100;">📱 Live Sync — PC &amp; Mobile</h4>
+              <p>Data syncs automatically between all open tabs and devices on the same browser. For multi-device sync (PC + Mobile), use the <strong>Import/Export JSON</strong> feature above, or open the CRM on the same Google Chrome browser profile on all devices.</p>
+              <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:#2e7d32;">
+                <span style="width:10px;height:10px;border-radius:50%;background:#2e7d32;display:inline-block;"></span>
+                Live sync is active on this device
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT LEAD MODAL -->
+<div class="overlay" id="edit-overlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3 id="edit-title">Edit Lead</h3>
+      <button class="modal-close" onclick="closeEdit()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <div class="fr"><label>Assign To</label><select id="e-assign"></select></div>
+        <div class="fr"><label>Status <span class="req">*</span></label>
+          <select id="e-status" onchange="toggleDead()">
+            <option>New</option><option>Active</option><option>Site Visit</option><option>Negotiation</option><option>Closed</option><option>Lost</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg" id="dead-row" style="display:none;">
+        <div class="fr"><label>Lost Reason</label>
+          <select id="e-dreason">
+            <option value="">— Select —</option>
+            <option>Configuration Issue</option><option>Budget Issue</option><option>Location Issue</option>
+            <option>Not Interested</option><option>Already Purchased</option><option>No Response</option>
+          </select>
+        </div>
+        <div class="fr"><label>Sub Reason</label><input type="text" id="e-dsub" placeholder="e.g. low budget"></div>
+      </div>
+      <!-- DATE + TIME for follow-up -->
+      <div class="fg">
+        <div class="fr"><label>📅 Next Follow-up Date</label><input type="date" id="e-nextcall"></div>
+        <div class="fr"><label>⏰ Follow-up Time</label><input type="time" id="e-nexttime" placeholder="HH:MM"></div>
+      </div>
+      <div class="fr"><label>Comment History</label>
+        <div class="comment-log" id="e-log"></div>
+        <textarea id="e-comment" rows="3" placeholder="Add new comment..." style="width:100%;padding:9px 11px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;outline:none;"></textarea>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-gray" onclick="closeEdit()">Cancel</button>
+      <button class="btn-blue" onclick="saveLead()">Update Lead</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW ENQUIRY MODAL -->
+<div class="overlay" id="new-overlay">
+  <div class="modal">
+    <div class="modal-hdr">
+      <h3>+ New Enquiry</h3>
+      <button class="modal-close" onclick="closeNew()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fg">
+        <div class="fr"><label>Name <span class="req">*</span></label><input type="text" id="n-name" placeholder="Client name"></div>
+        <div class="fr"><label>Mobile <span class="req">*</span></label><input type="text" id="n-phone" placeholder="9876543210"></div>
+      </div>
+      <div class="fg">
+        <div class="fr"><label>Email</label><input type="text" id="n-email" placeholder="email@example.com"></div>
+        <div class="fr"><label>Source</label>
+          <select id="n-source"><option>Magicbricks</option><option>99acres</option><option>JD Website</option><option>Reference</option><option>Walk-in</option></select>
+        </div>
+      </div>
+      <div class="fg">
+        <div class="fr"><label>BHK</label>
+          <select id="n-bhk"><option value="">Any</option><option>1 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4 BHK</option><option>Commercial</option><option>Plot</option></select>
+        </div>
+        <div class="fr"><label>Budget (₹)</label><input type="text" id="n-budget" placeholder="e.g. 50 Lakh"></div>
+      </div>
+      <div class="fg">
+        <div class="fr"><label>Preferred Area</label><input type="text" id="n-area" placeholder="Bopal, SG Highway..."></div>
+        <div class="fr"><label>Assign To</label><select id="n-assign"></select></div>
+      </div>
+      <!-- DATE + TIME -->
+      <div class="fg">
+        <div class="fr"><label>📅 Next Follow-up Date</label><input type="date" id="n-nextcall"></div>
+        <div class="fr"><label>⏰ Follow-up Time</label><input type="time" id="n-nexttime"></div>
+      </div>
+      <div class="fr"><label>Initial Comment</label><textarea id="n-comment" rows="3" placeholder="What is the client looking for?" style="width:100%;padding:9px 11px;border:1.5px solid var(--gray2);border-radius:8px;font-size:13px;font-family:inherit;resize:vertical;outline:none;"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-gray" onclick="closeNew()">Cancel</button>
+      <button class="btn-blue" onclick="saveNew()">Add Enquiry</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="overlay" id="profile-overlay">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-hdr">
+      <h3>👤 My Profile</h3>
+      <button class="modal-close" onclick="closeProfile()">✕</button>
+    </div>
+    <div class="modal-body" style="text-align:center;">
+      <div id="profile-pic-wrap"></div>
+      <label class="upload-photo-btn">📷 Change Photo<input type="file" id="profile-pic-input" accept="image/*" style="display:none;" onchange="uploadProfilePic(event)"></label>
+      <div style="margin-top:18px;text-align:left;">
+        <div class="fg">
+          <div class="fr"><label>Name</label><input type="text" id="p-name" readonly style="background:#f5f8fc;"></div>
+          <div class="fr"><label>Role</label><input type="text" id="p-role" readonly style="background:#f5f8fc;"></div>
+        </div>
+        <div class="fr"><label>Email</label><input type="text" id="p-email" readonly style="background:#f5f8fc;"></div>
+        <hr style="margin:16px 0;border-color:var(--blue3);">
+        <div style="font-size:13px;font-weight:700;color:var(--dark);margin-bottom:14px;">🔒 Change Password</div>
+        <div class="fr"><label>Current Password</label><input type="password" id="p-old" placeholder="Enter current password"></div>
+        <div class="fr"><label>New Password</label><input type="password" id="p-new" placeholder="Min. 6 characters"></div>
+        <div class="fr"><label>Confirm New Password</label><input type="password" id="p-confirm" placeholder="Re-enter new password"></div>
+        <div id="p-msg" style="font-size:13px;margin-top:4px;display:none;padding:8px 12px;border-radius:7px;"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-gray" onclick="closeProfile()">Close</button>
+      <button class="btn-blue" onclick="changePassword()">Save Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD/EDIT MEMBER MODAL -->
+<div class="overlay" id="member-overlay">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-hdr">
+      <h3 id="member-modal-title">+ Add Team Member</h3>
+      <button class="modal-close" onclick="closeMember()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="fr"><label>Full Name <span class="req">*</span></label><input type="text" id="m-name" placeholder="e.g. Rahul Shah"></div>
+      <div class="fr"><label>Email <span class="req">*</span></label><input type="email" id="m-email" placeholder="rahul@jaydwarkadhish.com"></div>
+      <div class="fr"><label>Password <span class="req">*</span></label><input type="password" id="m-pass" placeholder="Min. 6 characters"></div>
+      <div class="fg">
+        <div class="fr"><label>Role / Designation</label><input type="text" id="m-role" placeholder="Agent, Manager..."></div>
+        <div class="fr"><label>Access Level</label>
+          <select id="m-type"><option value="agent">Agent</option><option value="admin">Admin</option></select>
+        </div>
+      </div>
+      <div id="m-msg" style="font-size:13px;display:none;padding:8px 12px;border-radius:7px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-gray" onclick="closeMember()">Cancel</button>
+      <button class="btn-blue" onclick="saveMember()">Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN RESET PASSWORD MODAL -->
+<div class="overlay" id="reset-overlay">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-hdr">
+      <h3>🔑 Reset Password</h3>
+      <button class="modal-close" onclick="closeReset()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="reset-for-name" style="font-size:14px;font-weight:700;margin-bottom:16px;color:var(--dark);"></div>
+      <div class="fr"><label>New Password <span class="req">*</span></label><input type="password" id="rst-pass" placeholder="Min. 6 characters"></div>
+      <div class="fr"><label>Confirm Password <span class="req">*</span></label><input type="password" id="rst-confirm" placeholder="Re-enter new password"></div>
+      <div id="rst-msg" style="font-size:13px;display:none;padding:8px 12px;border-radius:7px;"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-gray" onclick="closeReset()">Cancel</button>
+      <button class="btn-blue" onclick="doResetPass()">Reset Password</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== STORAGE KEYS ==========
+const USERS_KEY='jdcrm_users_v4';
+const LEADS_KEY='jdcrm_leads_v4';
+const SESSION_KEY='jdcrm_session_v4';
+
+// ========== DATA STORAGE ==========
+function getUsers(){
+  try{
+    const raw=localStorage.getItem(USERS_KEY);
+    if(raw){const u=JSON.parse(raw);if(u&&Object.keys(u).length>0)return u;}
+  }catch(e){}
+  const def={'admin@jaydwarkadhish.com':{id:'admin001',name:'Admin',email:'admin@jaydwarkadhish.com',pass:'Admin@123',role:'Admin',type:'admin',initials:'AD',color:'#007fff'}};
+  saveUsers(def);
+  return def;
+}
+function saveUsers(u){
+  localStorage.setItem(USERS_KEY,JSON.stringify(u));
+  broadcastSync('users');
+}
+function getLeads(){try{return JSON.parse(localStorage.getItem(LEADS_KEY)||'[]');}catch(e){return[];}}
+function saveLeads(l){
+  localStorage.setItem(LEADS_KEY,JSON.stringify(l));
+  broadcastSync('leads');
+}
+function getPic(email){try{return localStorage.getItem('jdcrm_pic_v4_'+btoa(email))||null;}catch(e){return null;}}
+function setPic(email,data){try{localStorage.setItem('jdcrm_pic_v4_'+btoa(email),data);}catch(e){}}
+
+// ========== LIVE SYNC via BroadcastChannel ==========
+let bc;
+try{bc=new BroadcastChannel('jdcrm_sync');}catch(e){}
+function broadcastSync(type){
+  try{if(bc)bc.postMessage({type,ts:Date.now()});}catch(e){}
+  showSyncIndicator();
+}
+function showSyncIndicator(){
+  const el=document.getElementById('sync-indicator');
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'),2000);
+}
+if(bc){
+  bc.onmessage=function(e){
+    USERS=getUsers();leads=getLeads();
+    if(currentUser){
+      const page=document.querySelector('.page-sec.active');
+      if(page){
+        const id=page.id;
+        if(id==='page-dashboard')renderDash();
+        if(id==='page-enquiries')renderEnq();
+        if(id==='page-followups')renderFU();
+        if(id==='page-team')renderTeam();
+        if(id==='page-admin')renderAdmin();
+      }
+      populateAgentDropdowns();
+    }
+    showSyncIndicator();
+  };
+}
+// Also listen to storage events for cross-tab sync
+window.addEventListener('storage',function(e){
+  if(e.key===USERS_KEY||e.key===LEADS_KEY){
+    USERS=getUsers();leads=getLeads();
+    if(currentUser){
+      populateAgentDropdowns();
+      const page=document.querySelector('.page-sec.active');
+      if(page){
+        const id=page.id;
+        if(id==='page-dashboard')renderDash();
+        if(id==='page-enquiries')renderEnq();
+        if(id==='page-followups')renderFU();
+        if(id==='page-team')renderTeam();
+        if(id==='page-admin')renderAdmin();
+      }
+    }
+    showSyncIndicator();
+  }
+});
+
+let USERS=getUsers();
+let leads=getLeads();
+let currentUser=null;
+let editingId=null;
+let editingMember=null;
+let resetEmail=null;
+let notifTimer=null;
+
+// ========== UTILS ==========
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function ts(){const d=new Date();return[d.getDate(),d.getMonth()+1,d.getFullYear()].map((x,i)=>i<2?String(x).padStart(2,'0'):x).join('-')+' '+[d.getHours(),d.getMinutes()].map(x=>String(x).padStart(2,'0')).join(':');}
+function uname(email){return USERS[email]?USERS[email].name:email;}
+function initials(name){return(name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function colorFromStr(s){const colors=['#007fff','#00897b','#6c3fc7','#ff6d00','#c62828','#1565c0','#2e7d32'];let h=0;for(let c of(s||''))h=(h*31+c.charCodeAt(0))%colors.length;return colors[h];}
+function fmt12(time){if(!time)return '';const[h,m]=time.split(':');const hr=parseInt(h);return (hr%12||12)+':'+m+' '+(hr<12?'AM':'PM');}
+function todayStr(){return new Date().toISOString().split('T')[0];}
+function nowMinutes(){const d=new Date();return d.getHours()*60+d.getMinutes();}
+
+// ========== NOTIFICATIONS ==========
+function requestNotifPermission(){
+  if('Notification' in window && Notification.permission==='default'){
+    Notification.requestPermission();
+  }
+}
+function sendBrowserNotif(title,body){
+  if('Notification' in window && Notification.permission==='granted'){
+    new Notification(title,{body,icon:'https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/04/JD-logo-01-white.png'});
+  }
+}
+function showInAppBanner(text){
+  document.getElementById('notif-text').textContent=text;
+  document.getElementById('notif-banner').classList.add('open');
+  setTimeout(()=>document.getElementById('notif-banner').classList.remove('open'),8000);
+}
+function checkFollowUpNotifications(){
+  if(!currentUser)return;
+  leads=getLeads();
+  const todayDate=todayStr();
+  const nowMins=nowMinutes();
+  const myLeads=USERS[currentUser]?.type==='admin'?leads:leads.filter(l=>l.assign===currentUser);
+  
+  let todayCount=0;
+  let urgentAlerts=[];
+  
+  myLeads.forEach(l=>{
+    if(!l.nextCall||l.status==='Closed'||l.status==='Lost')return;
+    if(l.nextCall===todayDate){
+      todayCount++;
+      if(l.nextTime){
+        const[h,m]=l.nextTime.split(':');
+        const leadMins=parseInt(h)*60+parseInt(m);
+        const diff=leadMins-nowMins;
+        if(diff>=0&&diff<=30){
+          urgentAlerts.push({l,diff});
+        }
+        if(diff>=-5&&diff<=0){
+          urgentAlerts.push({l,diff:0});
+        }
+      }
+    }
+  });
+  
+  // Update bell badge
+  const badge=document.getElementById('notif-badge');
+  if(todayCount>0){badge.textContent=todayCount;badge.classList.add('show');}
+  else{badge.classList.remove('show');}
+  
+  // Show urgent alerts
+  urgentAlerts.forEach(({l,diff})=>{
+    const timeStr=fmt12(l.nextTime);
+    if(diff===0){
+      const msg=`⏰ NOW: Follow-up with ${l.name} at ${timeStr}! (${l.phone})`;
+      showInAppBanner(msg);
+      sendBrowserNotif('🔴 Jay Dwarkadhish CRM — NOW!',`Follow-up with ${l.name} at ${timeStr}`);
+    } else {
+      const msg=`⚠️ ${diff} min left: Follow-up with ${l.name} at ${timeStr}! (${l.phone})`;
+      showInAppBanner(msg);
+      sendBrowserNotif(`⚠️ CRM Alert — ${diff} mins left`,`Follow-up with ${l.name} at ${timeStr}`);
+    }
+  });
+}
+// Check every minute
+setInterval(checkFollowUpNotifications, 60000);
+
+// ========== SIDEBAR ==========
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sb-overlay').classList.toggle('open');
+}
+function closeSidebar(){
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sb-overlay').classList.remove('open');
+}
+
+// ========== LOGIN ==========
+function doLogin(){
+  const email=(document.getElementById('login-email').value||'').trim().toLowerCase();
+  const pass=document.getElementById('login-pass').value;
+  const err=document.getElementById('login-err');
+  // Always reload users fresh from storage
+  USERS=getUsers();
+  const user=USERS[email];
+  if(!user||user.pass!==pass){err.style.display='block';return;}
+  err.style.display='none';
+  currentUser=email;
+  localStorage.setItem(SESSION_KEY,email);
+  startApp();
+}
+document.getElementById('login-pass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('login-email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('login-pass').focus();});
+
+function doLogout(){
+  currentUser=null;
+  localStorage.removeItem(SESSION_KEY);
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-pass').value='';
+  document.getElementById('login-email').value='';
+}
+
+// ========== START APP ==========
+function startApp(){
+  USERS=getUsers();
+  leads=getLeads();
+  const u=USERS[currentUser];
+  if(!u){doLogout();return;}
+  renderAvatar(document.getElementById('sb-av'),currentUser,36);
+  document.getElementById('sb-uname').textContent=u.name;
+  document.getElementById('sb-urole').textContent=u.role||'Agent';
+  renderAvatar(document.getElementById('topbar-av'),currentUser,34);
+  document.getElementById('topbar-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('admin-nav').style.display=u.type==='admin'?'flex':'none';
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  populateAgentDropdowns();
+  showPage('dashboard',document.querySelector('.nav-item.active'));
+  requestNotifPermission();
+  setTimeout(checkFollowUpNotifications,2000);
+}
+
+function renderAvatar(el,email,size){
+  if(!el)return;
+  const u=USERS[email];
+  const pic=getPic(email);
+  el.style.background=pic?'transparent':(u?u.color:colorFromStr(email));
+  if(pic){el.innerHTML=`<img src="${pic}" style="width:100%;height:100%;object-fit:cover;">`;}
+  else{el.innerHTML=`<span style="font-size:${Math.round(size*0.35)}px;font-weight:700;">${u?u.initials||initials(u.name):initials(email)}</span>`;}
+}
+
+function populateAgentDropdowns(){
+  USERS=getUsers();
+  const agents=Object.values(USERS);
+  ['e-assign','n-assign','eq-assign'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const isFilter=id==='eq-assign';
+    const prev=el.value;
+    el.innerHTML=(isFilter?'<option value="">All Agents</option>':'')+agents.map(u=>`<option value="${u.email}">${u.name}</option>`).join('');
+    if(prev)el.value=prev;
+    else if(!isFilter)el.value=currentUser;
+  });
+}
+
+// ========== PAGES ==========
+function showPage(name,el){
+  closeSidebar();
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if(el)el.classList.add('active');
+  document.querySelectorAll('.page-sec').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.getElementById('topbar-title').textContent={dashboard:'Dashboard',enquiries:'Enquiries',followups:'Follow-ups',team:'Team',admin:'Admin'}[name]||name;
+  if(name==='dashboard')renderDash();
+  if(name==='enquiries')renderEnq();
+  if(name==='followups')renderFU();
+  if(name==='team')renderTeam();
+  if(name==='admin'){renderAdmin();if(document.getElementById('gdrive-last-backup'))updateGDriveLastBackup();}
+}
+
+// ========== DASHBOARD ==========
+function renderDash(){
+  leads=getLeads();USERS=getUsers();
+  const total=leads.length;
+  const active=leads.filter(l=>l.status==='Active').length;
+  const closed=leads.filter(l=>l.status==='Closed').length;
+  const lost=leads.filter(l=>l.status==='Lost').length;
+  const today=todayStr();
+  const overdue=leads.filter(l=>l.nextCall&&l.nextCall<today&&l.status!=='Closed'&&l.status!=='Lost').length;
+  const todayFU=leads.filter(l=>l.nextCall===today&&l.status!=='Closed'&&l.status!=='Lost').length;
+  document.getElementById('dash-stats').innerHTML=`
+    <div class="stat-card"><div class="stat-label">Total Leads</div><div class="stat-val blue">${total}</div></div>
+    <div class="stat-card"><div class="stat-label">Active</div><div class="stat-val" style="color:#1565c0">${active}</div></div>
+    <div class="stat-card"><div class="stat-label">Deals Closed</div><div class="stat-val green">${closed}</div></div>
+    <div class="stat-card"><div class="stat-label">Lost</div><div class="stat-val red">${lost}</div></div>
+    <div class="stat-card"><div class="stat-label">Overdue Follow-ups</div><div class="stat-val ${overdue>0?'red':''}">${overdue}</div></div>
+    <div class="stat-card"><div class="stat-label">Today's Follow-ups</div><div class="stat-val ${todayFU>0?'orange':''}">${todayFU}</div></div>`;
+
+  // Priority today's follow-ups
+  const SRC={'Magicbricks':'src-mb','99acres':'src-99','JD Website':'src-jd','Reference':'src-ref','Walk-in':'src-walk'};
+  const todayLeads=leads.filter(l=>l.nextCall===today&&l.status!=='Closed'&&l.status!=='Lost').sort((a,b)=>(a.nextTime||'99:99').localeCompare(b.nextTime||'99:99'));
+  const priorityDiv=document.getElementById('dash-priority');
+  if(todayLeads.length){
+    const nowMins=nowMinutes();
+    priorityDiv.innerHTML=todayLeads.map(l=>{
+      let urgency='';
+      if(l.nextTime){
+        const[h,m]=l.nextTime.split(':');
+        const lm=parseInt(h)*60+parseInt(m);
+        const diff=lm-nowMins;
+        if(diff<=-1)urgency='<span style="color:var(--red);font-weight:700;font-size:11px;">⚠ OVERDUE</span>';
+        else if(diff<=30)urgency='<span style="color:var(--orange);font-weight:700;font-size:11px;">🔥 IN '+diff+' MINS</span>';
+      }
+      return `<div class="fu-card" style="${l.nextTime&&(()=>{const[h,m]=l.nextTime.split(':');const diff=parseInt(h)*60+parseInt(m)-nowMins;return diff>=0&&diff<=30?'border-color:var(--orange);':''})()}">
+        <div class="fu-date-box" style="background:#fff3e0;">
+          <div class="fu-day" style="color:#e65100;">★</div>
+          <div class="fu-mon" style="color:#e65100;">TODAY</div>
+          ${l.nextTime?`<div class="fu-time-badge">${fmt12(l.nextTime)}</div>`:''}
+        </div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:700;font-size:14px;">${l.name} ${urgency}</div>
+          <div style="font-size:12px;color:var(--text2);margin-top:2px;">${uname(l.assign)} · ${l.phone}</div>
+          ${l.comments&&l.comments.length?`<div style="font-size:11px;color:var(--gray3);margin-top:4px;">${l.comments[l.comments.length-1].text.slice(0,60)}</div>`:''}
+        </div>
+        <button class="btn-blue" onclick="openEditEnq('${l.id}')" style="font-size:12px;padding:6px 12px;white-space:nowrap;">Edit</button>
+      </div>`;
+    }).join('');
+  } else {
+    priorityDiv.innerHTML='<div style="padding:14px;color:var(--gray3);font-size:13px;background:#fff;border-radius:12px;border:1.5px solid var(--blue3);">✅ No follow-ups scheduled for today.</div>';
+  }
+
+  document.getElementById('dash-recent').innerHTML=leads.slice(0,8).map(l=>`<tr>
+    <td><span class="lead-name" onclick="openEditEnq('${l.id}')">${l.name}</span></td>
+    <td>${l.phone}</td>
+    <td><span class="src-tag ${SRC[l.source]||'src-jd'}">${l.source||'—'}</span></td>
+    <td><span class="status-pill s-${(l.status||'new').toLowerCase().replace(' ','-')}">${l.status}</span></td>
+    <td style="font-size:12px;color:var(--text2);">${uname(l.assign)}</td>
+    <td style="font-size:12px;color:var(--gray3);">${l.nextCall?l.nextCall+(l.nextTime?' '+fmt12(l.nextTime):''):'—'}</td>
+  </tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--gray3);">No enquiries yet.</td></tr>';
+}
+
+// ========== ENQUIRIES ==========
+function renderEnq(){
+  leads=getLeads();USERS=getUsers();
+  const SRC={'Magicbricks':'src-mb','99acres':'src-99','JD Website':'src-jd','Reference':'src-ref','Walk-in':'src-walk'};
+  const q=(document.getElementById('eq-search').value||'').toLowerCase();
+  const fs=document.getElementById('eq-status').value;
+  const fsrc=document.getElementById('eq-source').value;
+  const fa=document.getElementById('eq-assign').value;
+  let list=leads.filter(l=>{
+    if(fs&&l.status!==fs)return false;
+    if(fsrc&&l.source!==fsrc)return false;
+    if(fa&&l.assign!==fa)return false;
+    if(q&&!((l.name||'').toLowerCase().includes(q)||(l.phone||'').includes(q)||(l.area||'').toLowerCase().includes(q)))return false;
+    return true;
+  });
+  document.getElementById('eq-count').textContent=`Total: ${list.length} lead${list.length!==1?'s':''}`;
+  const lastC=l=>{if(!l.comments||!l.comments.length)return '';const c=l.comments[l.comments.length-1];return `<span style="font-size:11px;color:var(--gray3);">${c.dt} · ${c.text.slice(0,40)}${c.text.length>40?'...':''}</span>`;};
+  document.getElementById('eq-tbody').innerHTML=list.length?list.map(l=>`<tr>
+    <td><div class="lead-name" onclick="openEditEnq('${l.id}')">${l.name}</div>${l.source?`<span class="src-tag ${SRC[l.source]||'src-jd'}">${l.source}</span>`:''}</td>
+    <td>${l.phone}</td>
+    <td style="font-size:12px;color:var(--text2);">${uname(l.assign)}</td>
+    <td><span class="status-pill s-${(l.status||'new').toLowerCase().replace(' ','-')}">${l.status}</span></td>
+    <td style="font-size:12px;color:var(--gray3);">${l.nextCall?l.nextCall+(l.nextTime?' '+fmt12(l.nextTime):''):'—'}</td>
+    <td>${lastC(l)}</td>
+    <td><button class="view-btn" onclick="openEdit('${l.id}')">👁</button></td>
+  </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--gray3);">No leads found.</td></tr>';
+}
+
+// ========== FOLLOW-UPS ==========
+function renderFU(){
+  leads=getLeads();USERS=getUsers();
+  const today=todayStr();
+  const nowMins=nowMinutes();
+  const pending=leads.filter(l=>l.nextCall&&l.status!=='Closed'&&l.status!=='Lost').sort((a,b)=>{
+    const da=a.nextCall+(a.nextTime||'00:00');
+    const db=b.nextCall+(b.nextTime||'00:00');
+    return da.localeCompare(db);
+  });
+  const overdue=pending.filter(l=>l.nextCall<today);
+  const todayL=pending.filter(l=>l.nextCall===today);
+  const upcoming=pending.filter(l=>l.nextCall>today);
+
+  const card=(l,cls)=>{
+    const d=new Date(l.nextCall+'T00:00:00');
+    const colors={overdue:{bg:'#ffebee',fg:'#c62828'},today:{bg:'#fff3e0',fg:'#e65100'},upcoming:{bg:'#e3f2fd',fg:'#007fff'}};
+    const c=colors[cls];
+    let urgencyLabel='';
+    let cardBorder='';
+    if(cls==='today'&&l.nextTime){
+      const[h,m]=l.nextTime.split(':');
+      const lm=parseInt(h)*60+parseInt(m);
+      const diff=lm-nowMins;
+      if(diff<=-1)urgencyLabel='<span style="background:#f44336;color:#fff;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:800;margin-left:6px;">⚠ OVERDUE</span>';
+      else if(diff<=30)urgencyLabel=`<span style="background:#ff6d00;color:#fff;border-radius:6px;padding:2px 8px;font-size:10px;font-weight:800;margin-left:6px;">🔥 IN ${diff} MINS</span>`;
+      if(diff>=0&&diff<=30)cardBorder='border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,109,0,0.15);';
+    }
+    return `<div class="fu-card" style="${cardBorder}">
+      <div class="fu-date-box" style="background:${c.bg};">
+        <div class="fu-day" style="color:${c.fg};">${d.getDate()}</div>
+        <div class="fu-mon" style="color:${c.fg};">${d.toLocaleString('default',{month:'short'})}</div>
+        ${l.nextTime?`<div class="fu-time-badge" style="background:${c.bg}99;color:${c.fg};">${fmt12(l.nextTime)}</div>`:''}
+      </div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-weight:700;font-size:14px;">${l.name}${urgencyLabel}</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;">${uname(l.assign)} · ${l.phone} · <span class="status-pill s-${(l.status||'new').toLowerCase().replace(' ','-')}">${l.status}</span></div>
+        ${l.comments&&l.comments.length?`<div style="font-size:11px;color:var(--gray3);margin-top:4px;">${l.comments[l.comments.length-1].text.slice(0,60)}</div>`:''}
+      </div>
+      <button class="btn-blue" onclick="openEditEnq('${l.id}')" style="font-size:12px;padding:6px 12px;white-space:nowrap;">Edit</button>
+    </div>`;
+  };
+  let html='';
+  if(overdue.length)html+=`<div style="font-size:11px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:1px;margin:0 0 8px;">⚠ Overdue (${overdue.length})</div>`+overdue.map(l=>card(l,'overdue')).join('');
+  if(todayL.length)html+=`<div style="font-size:11px;font-weight:700;color:var(--orange);text-transform:uppercase;letter-spacing:1px;margin:16px 0 8px;">★ Today (${todayL.length})</div>`+todayL.map(l=>card(l,'today')).join('');
+  if(upcoming.length)html+=`<div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:1px;margin:16px 0 8px;">📅 Upcoming (${upcoming.length})</div>`+upcoming.map(l=>card(l,'upcoming')).join('');
+  if(!pending.length)html='<div style="text-align:center;padding:4rem;color:var(--gray3);font-size:14px;">🎉 No pending follow-ups!</div>';
+  document.getElementById('fu-content').innerHTML=html;
+  checkFollowUpNotifications();
+}
+
+// ========== TEAM ==========
+function renderTeam(){
+  USERS=getUsers();leads=getLeads();
+  document.getElementById('team-grid').innerHTML=Object.values(USERS).map(u=>{
+    const mine=leads.filter(l=>l.assign===u.email).length;
+    const closed=leads.filter(l=>l.assign===u.email&&l.status==='Closed').length;
+    const active=leads.filter(l=>l.assign===u.email&&l.status!=='Closed'&&l.status!=='Lost').length;
+    const pic=getPic(u.email);
+    return `<div class="team-card">
+      <div class="team-av" style="background:${pic?'transparent':u.color};">${pic?`<img src="${pic}">`:(u.initials||initials(u.name))}</div>
+      <div class="team-nm">${u.name}</div>
+      <div class="team-role">${u.role||'Agent'}</div>
+      ${u.type==='admin'?'<div style="margin-bottom:8px;"><span class="badge-admin">ADMIN</span></div>':''}
+      <div style="border-top:1px solid var(--blue3);margin:12px 0;"></div>
+      <div class="team-stat">Total Leads: <span>${mine}</span></div>
+      <div class="team-stat">Active: <span>${active}</span></div>
+      <div class="team-stat">Closed: <span style="color:var(--green);">${closed}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// ========== ADMIN ==========
+function switchAdminTab(tab,el){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('admin-members').style.display=tab==='members'?'block':'none';
+  document.getElementById('admin-backup').style.display=tab==='backup'?'block':'none';
+  if(tab==='backup')updateGDriveLastBackup();
+}
+function renderAdmin(){
+  USERS=getUsers();
+  document.getElementById('members-tbody').innerHTML=Object.values(USERS).map(u=>`<tr>
+    <td><strong>${u.name}</strong></td>
+    <td style="color:var(--text2);font-size:12px;">${u.email}</td>
+    <td>${u.role||'—'}</td>
+    <td><span class="badge-admin" style="${u.type!=='admin'?'background:var(--green);':''}">${u.type==='admin'?'Admin':'Agent'}</span></td>
+    <td>
+      <button class="icon-btn" onclick="editMember('${u.email}')" title="Edit">✏️</button>
+      <button class="icon-btn" onclick="openReset('${u.email}')" title="Reset Password">🔑</button>
+      ${u.email!==currentUser?`<button class="icon-btn" onclick="deleteMember('${u.email}')" title="Delete">🗑️</button>`:''}
+    </td>
+  </tr>`).join('');
+}
+
+// ========== LEAD MODALS ==========
+function openEditEnq(id){
+  showPage('enquiries',document.querySelector('.nav-item:nth-child(2)'));
+  setTimeout(()=>openEdit(id),60);
+}
+function openEdit(id){
+  leads=getLeads();USERS=getUsers();
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  editingId=id;
+  document.getElementById('edit-title').textContent='Edit Lead — '+l.name;
+  populateAgentDropdowns();
+  document.getElementById('e-assign').value=l.assign||currentUser;
+  document.getElementById('e-status').value=l.status||'New';
+  document.getElementById('e-dreason').value=l.deadReason||'';
+  document.getElementById('e-dsub').value=l.deadSub||'';
+  document.getElementById('e-nextcall').value=l.nextCall||'';
+  document.getElementById('e-nexttime').value=l.nextTime||'';
+  document.getElementById('e-comment').value='';
+  toggleDead();
+  const log=document.getElementById('e-log');
+  log.innerHTML=(l.comments||[]).map(c=>`<div class="c-entry"><span class="c-by">${uname(c.by)}</span> <span class="c-dt">${c.dt}</span><br>${c.text}</div>`).join('');
+  log.scrollTop=log.scrollHeight;
+  document.getElementById('edit-overlay').classList.add('open');
+}
+function closeEdit(){document.getElementById('edit-overlay').classList.remove('open');editingId=null;}
+function toggleDead(){document.getElementById('dead-row').style.display=document.getElementById('e-status').value==='Lost'?'grid':'none';}
+function saveLead(){
+  leads=getLeads();
+  const l=leads.find(x=>x.id===editingId);if(!l)return;
+  l.assign=document.getElementById('e-assign').value;
+  l.status=document.getElementById('e-status').value;
+  l.deadReason=document.getElementById('e-dreason').value;
+  l.deadSub=document.getElementById('e-dsub').value;
+  l.nextCall=document.getElementById('e-nextcall').value;
+  l.nextTime=document.getElementById('e-nexttime').value;
+  const nc=document.getElementById('e-comment').value.trim();
+  if(nc){if(!l.comments)l.comments=[];l.comments.push({by:currentUser,dt:ts(),text:nc});}
+  saveLeads(leads);closeEdit();renderEnq();renderDash();checkFollowUpNotifications();
+}
+function openNewEnq(){
+  populateAgentDropdowns();
+  ['n-name','n-phone','n-email','n-budget','n-area','n-comment','n-nextcall','n-nexttime'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('n-source').value='Magicbricks';
+  document.getElementById('n-bhk').value='';
+  document.getElementById('n-assign').value=currentUser;
+  document.getElementById('new-overlay').classList.add('open');
+}
+function closeNew(){document.getElementById('new-overlay').classList.remove('open');}
+function saveNew(){
+  const name=document.getElementById('n-name').value.trim();
+  const phone=document.getElementById('n-phone').value.trim();
+  if(!name||!phone){alert('Name and mobile are required.');return;}
+  const comment=document.getElementById('n-comment').value.trim();
+  leads=getLeads();
+  leads.unshift({
+    id:uid(),name,phone,
+    email:document.getElementById('n-email').value.trim(),
+    source:document.getElementById('n-source').value,
+    bhk:document.getElementById('n-bhk').value,
+    budget:document.getElementById('n-budget').value.trim(),
+    area:document.getElementById('n-area').value.trim(),
+    assign:document.getElementById('n-assign').value,
+    status:'New',deadReason:'',deadSub:'',
+    nextCall:document.getElementById('n-nextcall').value,
+    nextTime:document.getElementById('n-nexttime').value,
+    comments:comment?[{by:currentUser,dt:ts(),text:comment}]:[]
+  });
+  saveLeads(leads);closeNew();renderEnq();renderDash();checkFollowUpNotifications();
+}
+
+// ========== PROFILE ==========
+function openProfile(){
+  const u=USERS[currentUser];if(!u)return;
+  document.getElementById('p-name').value=u.name;
+  document.getElementById('p-role').value=u.role||'Agent';
+  document.getElementById('p-email').value=u.email;
+  document.getElementById('p-old').value='';
+  document.getElementById('p-new').value='';
+  document.getElementById('p-confirm').value='';
+  document.getElementById('p-msg').style.display='none';
+  const pic=getPic(currentUser);
+  const wrap=document.getElementById('profile-pic-wrap');
+  if(pic){wrap.innerHTML=`<img src="${pic}" class="profile-pic-large">`;}
+  else{wrap.innerHTML=`<div class="profile-pic-ph" style="background:${u.color};">${u.initials||initials(u.name)}</div>`;}
+  document.getElementById('profile-overlay').classList.add('open');
+}
+function closeProfile(){document.getElementById('profile-overlay').classList.remove('open');}
+function uploadProfilePic(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    setPic(currentUser,ev.target.result);
+    openProfile();
+    renderAvatar(document.getElementById('sb-av'),currentUser,38);
+    renderAvatar(document.getElementById('topbar-av'),currentUser,34);
+  };
+  reader.readAsDataURL(file);
+}
+function changePassword(){
+  const old=document.getElementById('p-old').value;
+  const nw=document.getElementById('p-new').value.trim();
+  const conf=document.getElementById('p-confirm').value.trim();
+  const msg=document.getElementById('p-msg');
+  const show=(t,ok)=>{msg.textContent=t;msg.style.background=ok?'#e8f5e9':'#ffebee';msg.style.color=ok?'#2e7d32':'#c62828';msg.style.display='block';}
+  if(!old||!nw||!conf){show('Please fill all password fields.',false);return;}
+  USERS=getUsers();
+  if(USERS[currentUser].pass!==old){show('Current password is incorrect.',false);return;}
+  if(nw.length<6){show('New password must be at least 6 characters.',false);return;}
+  if(nw!==conf){show('Passwords do not match.',false);return;}
+  USERS[currentUser].pass=nw;
+  saveUsers(USERS);
+  show('✅ Password changed successfully!',true);
+  document.getElementById('p-old').value='';document.getElementById('p-new').value='';document.getElementById('p-confirm').value='';
+}
+
+// ========== MEMBER MANAGEMENT ==========
+function openAddMember(){
+  editingMember=null;
+  document.getElementById('member-modal-title').textContent='+ Add Team Member';
+  ['m-name','m-email','m-pass','m-role'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('m-type').value='agent';
+  document.getElementById('m-msg').style.display='none';
+  document.getElementById('member-overlay').classList.add('open');
+}
+function editMember(email){
+  USERS=getUsers();
+  const u=USERS[email];if(!u)return;
+  editingMember=email;
+  document.getElementById('member-modal-title').textContent='Edit Member';
+  document.getElementById('m-name').value=u.name;
+  document.getElementById('m-email').value=u.email;
+  document.getElementById('m-pass').value='';
+  document.getElementById('m-role').value=u.role||'';
+  document.getElementById('m-type').value=u.type||'agent';
+  document.getElementById('m-msg').style.display='none';
+  document.getElementById('member-overlay').classList.add('open');
+}
+function closeMember(){document.getElementById('member-overlay').classList.remove('open');editingMember=null;}
+function saveMember(){
+  USERS=getUsers();
+  const name=document.getElementById('m-name').value.trim();
+  const email=document.getElementById('m-email').value.trim().toLowerCase();
+  const pass=document.getElementById('m-pass').value;
+  const role=document.getElementById('m-role').value.trim()||'Agent';
+  const type=document.getElementById('m-type').value;
+  const msg=document.getElementById('m-msg');
+  const show=(t,ok)=>{msg.textContent=t;msg.style.background=ok?'#e8f5e9':'#ffebee';msg.style.color=ok?'#2e7d32':'#c62828';msg.style.display='block';}
+  if(!name||!email){show('Name and email are required.',false);return;}
+  if(!editingMember&&!pass){show('Password is required for new member.',false);return;}
+  if(pass&&pass.length<6){show('Password must be at least 6 characters.',false);return;}
+  if(!editingMember&&USERS[email]){show('Email already exists.',false);return;}
+  if(editingMember){
+    const u=USERS[editingMember];
+    u.name=name;u.role=role;u.type=type;
+    u.initials=initials(name);
+    if(editingMember!==email){delete USERS[editingMember];u.email=email;USERS[email]=u;}
+    if(pass)u.pass=pass;
+  } else {
+    USERS[email]={id:uid(),name,email,pass,role,type,initials:initials(name),color:colorFromStr(email)};
+  }
+  saveUsers(USERS);
+  closeMember();
+  renderAdmin();
+  populateAgentDropdowns();
+  show('Saved!',true);
+}
+function deleteMember(email){
+  if(!confirm(`Remove ${USERS[email]?.name||email} from team?`))return;
+  USERS=getUsers();
+  delete USERS[email];
+  saveUsers(USERS);
+  renderAdmin();
+  populateAgentDropdowns();
+}
+
+// ========== ADMIN RESET PASSWORD ==========
+function openReset(email){
+  resetEmail=email;
+  USERS=getUsers();
+  const u=USERS[email];
+  document.getElementById('reset-for-name').textContent='Resetting password for: '+( u?u.name:email);
+  document.getElementById('rst-pass').value='';
+  document.getElementById('rst-confirm').value='';
+  document.getElementById('rst-msg').style.display='none';
+  document.getElementById('reset-overlay').classList.add('open');
+}
+function closeReset(){document.getElementById('reset-overlay').classList.remove('open');resetEmail=null;}
+function doResetPass(){
+  const pass=document.getElementById('rst-pass').value.trim();
+  const conf=document.getElementById('rst-confirm').value.trim();
+  const msg=document.getElementById('rst-msg');
+  const show=(t,ok)=>{msg.textContent=t;msg.style.background=ok?'#e8f5e9':'#ffebee';msg.style.color=ok?'#2e7d32':'#c62828';msg.style.display='block';}
+  if(!pass||!conf){show('Please enter and confirm the new password.',false);return;}
+  if(pass.length<6){show('Password must be at least 6 characters.',false);return;}
+  if(pass!==conf){show('Passwords do not match.',false);return;}
+  USERS=getUsers();
+  if(!USERS[resetEmail]){show('User not found.',false);return;}
+  USERS[resetEmail].pass=pass;
+  saveUsers(USERS);
+  show('✅ Password reset successfully!',true);
+  setTimeout(closeReset,1500);
+}
+
+// ========== EXPORT / BACKUP ==========
+function exportCSV(){
+  leads=getLeads();
+  if(!leads.length){alert('No leads to export.');return;}
+  const cols=['Name','Phone','Email','Source','BHK','Budget','Area','Assigned To','Status','Next Follow-up Date','Next Follow-up Time','Dead Reason','Comments'];
+  const rows=leads.map(l=>[
+    l.name,l.phone,l.email,l.source,l.bhk,l.budget,l.area,
+    uname(l.assign),l.status,l.nextCall||'',l.nextTime||'',l.deadReason||'',
+    (l.comments||[]).map(c=>`[${c.dt} ${uname(c.by)}]: ${c.text}`).join(' | ')
+  ].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
+  const csv=[cols.join(','),...rows].join('\n');
+  downloadFile('JD_CRM_Leads.csv','\uFEFF'+csv,'text/csv;charset=utf-8;');
+}
+function exportJSON(){
+  leads=getLeads();
+  const backup={exported:new Date().toISOString(),leads,users:getUsers(),version:'4.0'};
+  downloadFile('JD_CRM_Backup_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(backup,null,2),'application/json');
+}
+function importJSON(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      const imp=data.leads||data;
+      if(!Array.isArray(imp))throw new Error('Invalid format');
+      if(!confirm(`Import ${imp.length} leads? This will replace all current leads.`))return;
+      saveLeads(imp);leads=imp;
+      if(data.users&&typeof data.users==='object'){
+        // Merge users but keep current admin
+        const existing=getUsers();
+        const merged={...data.users,...existing};
+        saveUsers(merged);USERS=merged;
+      }
+      renderDash();renderEnq();
+      populateAgentDropdowns();
+      alert(`✅ ${imp.length} leads imported successfully!`);
+    }catch(err){alert('Invalid backup file. Please use a valid JD CRM JSON backup.');}
+  };
+  reader.readAsText(file);
+  e.target.value='';
+}
+
+// EXCEL EXPORT - proper xlsx using SheetJS-compatible CSV trick and real xlsx structure
+function exportExcel(){
+  leads=getLeads();
+  if(!leads.length){alert('No leads to export.');return;}
+  // Build proper CSV with BOM for Excel
+  const cols=['Name','Phone','Email','Source','BHK','Budget','Area','Assigned To','Status','Next Follow-up Date','Next Follow-up Time','Lost Reason','Comments'];
+  const rows=leads.map(l=>[
+    l.name,l.phone,l.email,l.source,l.bhk,l.budget,l.area,
+    uname(l.assign),l.status,l.nextCall||'',
+    l.nextTime?fmt12(l.nextTime):'',
+    l.deadReason||'',
+    (l.comments||[]).map(c=>`[${c.dt}] ${uname(c.by)}: ${c.text}`).join(' | ')
+  ].map(v=>`"${(String(v||'')).replace(/"/g,'""')}"`).join(','));
+  // Add BOM for Excel UTF-8 detection
+  const csv='\uFEFF'+cols.map(c=>`"${c}"`).join(',')+'\n'+rows.join('\n');
+  downloadFile('JD_CRM_Leads_'+new Date().toISOString().slice(0,10)+'.csv',csv,'text/csv;charset=utf-8;');
+  // Also offer HTML table version
+  const xls=buildXLSHTML(leads);
+  setTimeout(()=>downloadFile('JD_CRM_Leads_Excel.xls',xls,'application/vnd.ms-excel'),300);
+}
+function buildXLSHTML(leads){
+  const esc=v=>(v||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const rows=leads.map(l=>`<tr>
+    <td>${esc(l.name)}</td><td>${esc(l.phone)}</td><td>${esc(l.email)}</td>
+    <td>${esc(l.source)}</td><td>${esc(l.bhk)}</td><td>${esc(l.budget)}</td>
+    <td>${esc(l.area)}</td><td>${esc(uname(l.assign))}</td><td>${esc(l.status)}</td>
+    <td>${esc(l.nextCall)}</td><td>${esc(l.nextTime?fmt12(l.nextTime):'')}</td>
+    <td>${esc(l.deadReason)}</td>
+    <td>${esc((l.comments||[]).map(c=>`[${c.dt}] ${uname(c.by)}: ${c.text}`).join(' | '))}</td>
+  </tr>`).join('');
+  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+<head><meta charset="UTF-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>JD CRM Leads</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+<style>th{background:#0a1628;color:white;padding:8px;font-weight:bold;font-size:12px;}td{padding:6px;border:1px solid #cce7ff;font-size:12px;}tr:nth-child(even) td{background:#f0f7ff;}</style></head>
+<body><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Source</th><th>BHK</th><th>Budget</th><th>Area</th><th>Assigned To</th><th>Status</th><th>Next Follow-up Date</th><th>Follow-up Time</th><th>Lost Reason</th><th>Comments</th></tr></thead>
+<tbody>${rows}</tbody></table></body></html>`;
+}
+
+// GOOGLE DRIVE BACKUP
+function gDriveBackup(){
+  exportJSON();
+  localStorage.setItem('jdcrm_gdrive_last',new Date().toISOString());
+  updateGDriveLastBackup();
+  alert('✅ Backup file downloaded!\n\nNow go to Google Drive and upload this file.\nClick "Step 2: Open Google Drive" button.');
+}
+function openGDrive(){
+  window.open('https://drive.google.com/drive/my-drive','_blank');
+}
+function updateGDriveLastBackup(){
+  const el=document.getElementById('gdrive-last-backup');
+  if(!el)return;
+  const last=localStorage.getItem('jdcrm_gdrive_last');
+  if(last){
+    const d=new Date(last);
+    el.textContent='☁️ Last backup: '+d.toLocaleDateString('en-IN')+' at '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+    el.style.display='block';
+  }
+}
+
+function downloadFile(name,content,type){
+  const a=document.createElement('a');
+  const blob=new Blob([content],{type});
+  a.href=URL.createObjectURL(blob);
+  a.download=name;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},200);
+}
+
+// ========== CLOSE OVERLAYS ==========
+['edit-overlay','new-overlay','profile-overlay','member-overlay','reset-overlay'].forEach(id=>{
+  document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('open');});
+});
+
+// ========== AUTO LOGIN ==========
+const sess=localStorage.getItem(SESSION_KEY);
+USERS=getUsers();
+if(sess&&USERS[sess]){currentUser=sess;startApp();}
+</script>
+</body>
+</html>
