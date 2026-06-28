@@ -159,10 +159,13 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
 .t-jd{background:var(--pl);color:var(--p);border:1px solid var(--pm);}
 .t-ref{background:var(--gl);color:#059669;border:1px solid #a7f3d0;}
 .t-walk{background:var(--pul);color:#7c3aed;border:1px solid #ddd6fe;}
+.t-housing{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
 .sp{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;}
 .sp::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0;}
 .s-new{background:#eff6ff;color:#1d4ed8;}.s-new::before{background:#2563eb;}
 .s-active{background:#ecfdf5;color:#065f46;}.s-active::before{background:#10b981;}
+.s-warm{background:#fff7ed;color:#c2410c;}.s-warm::before{background:#f97316;}
+.s-follow-up{background:#fdf4ff;color:#86198f;}.s-follow-up::before{background:#d946ef;}
 .s-site-visit{background:#fffbeb;color:#92400e;}.s-site-visit::before{background:#f59e0b;}
 .s-negotiation{background:#f5f3ff;color:#5b21b6;}.s-negotiation::before{background:#8b5cf6;}
 .s-closed{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;}.s-closed::before{background:#10b981;}
@@ -243,6 +246,13 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
 .fs2-l{font-size:13px;font-weight:600;color:var(--dk);}
 .fs2-s{font-size:11px;color:var(--tx3);}
 .fs2-c{margin-left:auto;font-size:20px;font-weight:800;color:var(--dk);}
+.imgprev{width:100%;max-height:160px;object-fit:contain;border-radius:9px;border:1.5px solid var(--bd);margin-top:8px;display:none;background:var(--bg2);}
+.imgprev.on{display:block;}
+.thumb{width:34px;height:34px;border-radius:7px;object-fit:cover;border:1px solid var(--bd);vertical-align:middle;}
+.vrow{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px;}
+.vrow:last-child{border:none;}
+.vrow span:first-child{color:var(--tx3);font-weight:600;}
+.vrow span:last-child{color:var(--tx);font-weight:600;text-align:right;}
 @media(max-width:768px){
   .sb{width:270px;transform:translateX(-100%);}
   .sb.on{transform:translateX(0);}
@@ -351,12 +361,12 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
         <div class="tw">
           <div class="tt">
             <div class="sb2"><span class="sb2-ic">🔍</span><input type="text" placeholder="Search..." id="eq-s" oninput="renderEnq()"></div>
-            <select class="fsel" id="eq-st" onchange="renderEnq()"><option value="">All Statuses</option><option>New</option><option>Active</option><option>Site Visit</option><option>Negotiation</option><option>Closed</option><option>Lost</option></select>
-            <select class="fsel" id="eq-src" onchange="renderEnq()"><option value="">All Sources</option><option>Magicbricks</option><option>99acres</option><option>JD Website</option><option>Reference</option><option>Walk-in</option></select>
+            <select class="fsel" id="eq-st" onchange="renderEnq()"><option value="">All Statuses</option><option>New</option><option>Active</option><option>Warm</option><option>Follow Up</option><option>Site Visit</option><option>Negotiation</option><option>Closed</option><option>Lost</option></select>
+            <select class="fsel" id="eq-src" onchange="renderEnq()"><option value="">All Sources</option><option>Magicbricks</option><option>99acres</option><option>Housing</option><option>JD Website</option><option>Reference</option><option>Walk-in</option></select>
             <select class="fsel" id="eq-ag" onchange="renderEnq()"><option value="">All Agents</option></select>
           </div>
           <div class="lc" id="eq-cnt">Loading...</div>
-          <div style="overflow-x:auto"><table><thead><tr><th>Client</th><th>Mobile</th><th>BHK/Budget</th><th>Agent</th><th>Status</th><th>Next Follow-up</th><th>Last Note</th><th></th></tr></thead><tbody id="eq-body"></tbody></table></div>
+          <div style="overflow-x:auto"><table><thead><tr><th>Client</th><th>Mobile</th><th>BHK/Budget</th><th>Agent</th><th>Status</th><th>Next Follow-up</th><th>Last Note</th><th>Actions</th></tr></thead><tbody id="eq-body"></tbody></table></div>
         </div>
       </div>
       <div id="ps-followups" class="ps">
@@ -408,7 +418,7 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
     <div class="mb">
       <div class="fg">
         <div class="fr"><label>Assign To</label><select id="e-assign"></select></div>
-        <div class="fr"><label>Status</label><select id="e-status" onchange="toggleDead()"><option>New</option><option>Active</option><option>Site Visit</option><option>Negotiation</option><option>Closed</option><option>Lost</option></select></div>
+        <div class="fr"><label>Status</label><select id="e-status" onchange="toggleDead()"><option>New</option><option>Active</option><option>Warm</option><option>Follow Up</option><option>Site Visit</option><option>Negotiation</option><option>Closed</option><option>Lost</option></select></div>
       </div>
       <div class="fg" id="dead-row" style="display:none">
         <div class="fr"><label>Lost Reason</label><select id="e-dr"><option value="">— Select —</option><option>Configuration Issue</option><option>Budget Issue</option><option>Location Issue</option><option>Not Interested</option><option>Already Purchased</option><option>No Response</option></select></div>
@@ -418,9 +428,14 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
         <div class="fr"><label>📅 Next Follow-up Date</label><input type="date" id="e-nd"></div>
         <div class="fr"><label>⏰ Follow-up Time</label><input type="time" id="e-nt"></div>
       </div>
+      <div class="fr">
+        <label>🏠 Property Photo (optional)</label>
+        <input type="file" id="e-img" accept="image/*" onchange="prevImg(this,'e-img-prev','edit')">
+        <img id="e-img-prev" class="imgprev">
+      </div>
       <div class="fr"><label>Comment History</label><div class="clog" id="e-log"></div><textarea id="e-cmt" rows="3" placeholder="Add new comment..." style="width:100%;padding:9px 12px;border:1.5px solid var(--bd);border-radius:var(--rad2);font-size:13px;font-family:inherit;resize:vertical;outline:none;margin-top:8px"></textarea></div>
     </div>
-    <div class="mf"><button class="btn btn-gh" onclick="closeEdit()">Cancel</button><button class="btn btn-p" id="sv-btn" onclick="saveLead()">Update Lead</button></div>
+    <div class="mf"><button class="btn btn-wa btn-sm" id="e-wa-btn" onclick="waReminder(editId)">💬 WhatsApp</button><button class="btn btn-gh" onclick="closeEdit()">Cancel</button><button class="btn btn-p" id="sv-btn" onclick="saveLead()">Update Lead</button></div>
   </div>
 </div>
 
@@ -435,7 +450,7 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
       </div>
       <div class="fg">
         <div class="fr"><label>Email</label><input type="text" id="n-em"></div>
-        <div class="fr"><label>Source</label><select id="n-src"><option>Magicbricks</option><option>99acres</option><option>JD Website</option><option>Reference</option><option>Walk-in</option></select></div>
+        <div class="fr"><label>Source</label><select id="n-src"><option>Magicbricks</option><option>99acres</option><option>Housing</option><option>JD Website</option><option>Reference</option><option>Walk-in</option></select></div>
       </div>
       <div class="fs-h">Requirement</div>
       <div class="fg">
@@ -451,9 +466,35 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
         <div class="fr"><label>📅 Next Follow-up Date</label><input type="date" id="n-nd"></div>
         <div class="fr"><label>⏰ Follow-up Time</label><input type="time" id="n-nt"></div>
       </div>
+      <div class="fr">
+        <label>🏠 Property Photo (optional)</label>
+        <input type="file" id="n-img" accept="image/*" onchange="prevImg(this,'n-img-prev','new')">
+        <img id="n-img-prev" class="imgprev">
+      </div>
       <div class="fr"><label>Initial Note</label><textarea id="n-cmt" rows="3" placeholder="Client requirement details..." style="width:100%;padding:9px 12px;border:1.5px solid var(--bd);border-radius:var(--rad2);font-size:13px;font-family:inherit;resize:vertical;outline:none"></textarea></div>
     </div>
     <div class="mf"><button class="btn btn-gh" onclick="closeNew()">Cancel</button><button class="btn btn-p" id="sv-new-btn" onclick="saveNew()">Add Enquiry</button></div>
+  </div>
+</div>
+
+<div class="ov" id="view-ov">
+  <div class="mo" style="max-width:480px">
+    <div class="mh"><div class="mh-l"><div class="mh-ic">👁️</div><div><h3 id="view-title">Lead Details</h3><p id="view-sub"></p></div></div><button class="mx" onclick="closeView()">✕</button></div>
+    <div class="mb">
+      <img id="v-img" class="imgprev">
+      <div class="vrow"><span>Mobile</span><span id="v-phone"></span></div>
+      <div class="vrow"><span>Email</span><span id="v-email"></span></div>
+      <div class="vrow"><span>Source</span><span id="v-source"></span></div>
+      <div class="vrow"><span>BHK</span><span id="v-bhk"></span></div>
+      <div class="vrow"><span>Budget</span><span id="v-budget"></span></div>
+      <div class="vrow"><span>Area</span><span id="v-area"></span></div>
+      <div class="vrow"><span>Status</span><span id="v-status"></span></div>
+      <div class="vrow"><span>Agent</span><span id="v-agent"></span></div>
+      <div class="vrow"><span>Next Follow-up</span><span id="v-nf"></span></div>
+      <div class="fs-h" style="margin-top:16px">Comment History</div>
+      <div class="clog" id="v-log"></div>
+    </div>
+    <div class="mf"><button class="btn btn-wa btn-sm" id="v-wa-btn" onclick="waReminder(viewId)">💬 WhatsApp</button><button class="btn btn-gh" onclick="closeView()">Close</button></div>
   </div>
 </div>
 
@@ -512,7 +553,8 @@ tbody td{padding:10px 14px;font-size:13px;vertical-align:middle;}
 const SU='https://fwngicuftpodzsfanhfb.supabase.co';
 const SK='sb_publishable_gb8TSV7IQWIRreMpFbP57w_gGzhgecU';
 const sb=supabase.createClient(SU,SK);
-let CU=null,AU=[],AL=[],editId=null,editMem=null,rstEmail=null;
+let CU=null,AU=[],AL=[],editId=null,viewId=null,editMem=null,rstEmail=null;
+let newImgData='',editImgData='';
 
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
 function ts(){const d=new Date();return[d.getDate(),d.getMonth()+1,d.getFullYear()].map((x,i)=>i<2?String(x).padStart(2,'0'):x).join('-')+' '+[d.getHours(),d.getMinutes()].map(x=>String(x).padStart(2,'0')).join(':');}
@@ -526,7 +568,18 @@ function showSy(){const e=document.getElementById('sy');e.classList.add('on');se
 function showMsg(id,txt,ok){const e=document.getElementById(id);e.textContent=txt;e.className='malert '+(ok?'ok':'err');e.style.display='block';}
 function setAv(el,user){if(!el||!user)return;el.style.background=col(user.email||'');el.innerHTML=`<span style="font-size:11px;font-weight:700">${ini(user.name||'')}</span>`;}
 function scls(s){return 's-'+(s||'new').toLowerCase().replace(/\s+/g,'-');}
-const STAG={'Magicbricks':'t-mb','99acres':'t-99','JD Website':'t-jd','Reference':'t-ref','Walk-in':'t-walk'};
+const STAG={'Magicbricks':'t-mb','99acres':'t-99','Housing':'t-housing','JD Website':'t-jd','Reference':'t-ref','Walk-in':'t-walk'};
+
+function prevImg(input,prevId,mode){
+  const f=input.files&&input.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const data=e.target.result;
+    if(mode==='new')newImgData=data;else editImgData=data;
+    const img=document.getElementById(prevId);img.src=data;img.classList.add('on');
+  };
+  reader.readAsDataURL(f);
+}
 
 async function dbU(){const{data,error}=await sb.from('users').select('*');if(error){console.error(error);return[];}return data||[];}
 async function dbL(){const{data,error}=await sb.from('leads').select('*').order('created_at',{ascending:false});if(error){console.error(error);return[];}return(data||[]).map(l=>({...l,comments:typeof l.comments==='string'?JSON.parse(l.comments||'[]'):l.comments||[]}));}
@@ -641,8 +694,8 @@ function renderDash(){
     <div class="sc r"><div class="sc-ico">❌</div><div class="sc-v">${ls}</div><div class="sc-l">Lost</div></div>
     <div class="sc o"><div class="sc-ico">⏰</div><div class="sc-v">${tfu}</div><div class="sc-l">Today's FU</div></div>
     <div class="sc r"><div class="sc-ico">⚠️</div><div class="sc-v">${ov}</div><div class="sc-l">Overdue</div></div>`;
-  const stages=['New','Active','Site Visit','Negotiation','Closed','Lost'];
-  const stC=['#2563eb','#10b981','#f59e0b','#8b5cf6','#059669','#ef4444'];
+  const stages=['New','Active','Warm','Follow Up','Site Visit','Negotiation','Closed','Lost'];
+  const stC=['#2563eb','#10b981','#f97316','#d946ef','#f59e0b','#8b5cf6','#059669','#ef4444'];
   document.getElementById('d-pipe').innerHTML=`<div class="rc" style="margin:0">${stages.map((s,i)=>{const cnt=AL.filter(l=>l.status===s).length;const pct=tot?Math.round(cnt/tot*100):0;return`<div class="br"><div class="br-l">${s}</div><div class="br-t"><div class="br-f" style="width:${pct}%;background:${stC[i]}"></div></div><div class="br-v">${cnt}</div></div>`;}).join('')}</div>`;
   const nm=nowM();
   const todL=AL.filter(l=>l.next_call===td&&l.status!=='Closed'&&l.status!=='Lost').sort((a,b)=>(a.next_time||'99:99').localeCompare(b.next_time||'99:99'));
@@ -650,7 +703,7 @@ function renderDash(){
   if(todL.length){
     priDiv.innerHTML=todL.slice(0,5).map(l=>{
       let ub='';if(l.next_time){const[h,m]=l.next_time.split(':');const diff=parseInt(h)*60+parseInt(m)-nm;if(diff<=-1)ub='<span class="ubadge" style="background:#fef2f2;color:#dc2626">⚠ Overdue</span>';else if(diff<=30)ub=`<span class="ubadge" style="background:#fff7ed;color:#ea580c">🔥 ${diff}m</span>`;}
-      return `<div class="fuc" style="padding:11px 14px;margin-bottom:7px"><div class="fu-d" style="background:#fff7ed;min-width:50px;padding:9px 11px"><div class="fu-day" style="color:#ea580c;font-size:18px">★</div><div class="fu-mon" style="color:#ea580c">TODAY</div>${l.next_time?`<div class="fu-time" style="background:#fff;color:#ea580c">${fmt12(l.next_time)}</div>`:''}</div><div class="fu-bd"><div class="fu-nm">${l.name}${ub}</div><div class="fu-mt">${uname(l.assign)} · ${l.phone}</div></div><button class="btn btn-p btn-sm" onclick="openEdit('${l.id}')">Edit</button></div>`;
+      return `<div class="fuc" style="padding:11px 14px;margin-bottom:7px"><div class="fu-d" style="background:#fff7ed;min-width:50px;padding:9px 11px"><div class="fu-day" style="color:#ea580c;font-size:18px">★</div><div class="fu-mon" style="color:#ea580c">TODAY</div>${l.next_time?`<div class="fu-time" style="background:#fff;color:#ea580c">${fmt12(l.next_time)}</div>`:''}</div><div class="fu-bd"><div class="fu-nm">${l.name}${ub}</div><div class="fu-mt">${uname(l.assign)} · ${l.phone}</div></div><div class="fu-btns"><button class="btn btn-p btn-sm" onclick="openEdit('${l.id}')">Edit</button><button class="btn btn-wa btn-sm" onclick="waReminder('${l.id}')">💬</button></div></div>`;
     }).join('');
   }else{priDiv.innerHTML='<div style="padding:18px;color:var(--tx3);font-size:13px;background:#fff;border-radius:var(--rad);border:1px solid var(--bd);text-align:center">✅ No follow-ups today.</div>';}
   document.getElementById('d-rec').innerHTML=AL.slice(0,8).map(l=>`<tr><td><span class="ln" onclick="openEdit('${l.id}')">${l.name}</span></td><td>${l.phone}</td><td>${l.source?`<span class="stag ${STAG[l.source]||'t-jd'}">${l.source}</span>`:'—'}</td><td><span class="sp ${scls(l.status)}">${l.status}</span></td><td style="font-size:12px;color:var(--tx2)">${uname(l.assign)}</td><td style="font-size:12px;color:var(--tx3)">${l.next_call?l.next_call+(l.next_time?' '+fmt12(l.next_time):''):'—'}</td></tr>`).join('')||'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--tx3)">No leads yet!</td></tr>';
@@ -670,14 +723,14 @@ function renderEnq(){
   document.getElementById('eq-cnt').textContent=`${list.length} lead${list.length!==1?'s':''} found`;
   const lc=l=>{if(!l.comments?.length)return '—';const c=l.comments[l.comments.length-1];return `<span style="color:var(--tx3);font-size:11px">${c.dt} · ${c.text.slice(0,35)}${c.text.length>35?'...':''}</span>`;};
   document.getElementById('eq-body').innerHTML=list.length?list.map(l=>`<tr>
-    <td><div class="ln" onclick="openEdit('${l.id}')">${l.name}</div>${l.source?`<span class="stag ${STAG[l.source]||'t-jd'}">${l.source}</span>`:''}</td>
+    <td>${l.property_image?`<img src="${l.property_image}" class="thumb" style="margin-right:6px">`:''}<div class="ln" onclick="openEdit('${l.id}')">${l.name}</div>${l.source?`<span class="stag ${STAG[l.source]||'t-jd'}">${l.source}</span>`:''}</td>
     <td>${l.phone}</td>
     <td style="font-size:12px">${l.bhk||'—'}<br><span style="color:var(--tx3)">${l.budget||'—'}</span></td>
     <td style="font-size:12px;color:var(--tx2)">${uname(l.assign)}</td>
     <td><span class="sp ${scls(l.status)}">${l.status}</span></td>
     <td style="font-size:12px;color:var(--tx3)">${l.next_call?l.next_call+(l.next_time?' '+fmt12(l.next_time):''):'—'}</td>
     <td>${lc(l)}</td>
-    <td><button class="ia" onclick="openEdit('${l.id}')">✏️</button></td>
+    <td style="white-space:nowrap"><button class="ia" title="Edit" onclick="openEdit('${l.id}')">✏️</button><button class="ia" title="View" onclick="openView('${l.id}')">👁️</button><button class="ia" title="WhatsApp" onclick="waReminder('${l.id}')">💬</button></td>
   </tr>`).join(''):'<tr><td colspan="8" style="text-align:center;padding:2.5rem;color:var(--tx3)">No leads found.</td></tr>';
 }
 
@@ -691,7 +744,7 @@ function renderFU(){
     const cfgs={overdue:{bg:'#fef2f2',fg:'#dc2626'},today:{bg:'#fff7ed',fg:'#ea580c'},upcoming:{bg:'#eff6ff',fg:'#2563eb'}};
     const c=cfgs[type];let ub='';
     if(type==='today'&&l.next_time){const[h,m]=l.next_time.split(':');const lm=parseInt(h)*60+parseInt(m);const diff=lm-nm;if(diff<=-1)ub='<span class="ubadge" style="background:#fef2f2;color:#dc2626">⚠ Overdue</span>';else if(diff<=30)ub=`<span class="ubadge" style="background:#fff7ed;color:#ea580c">🔥 ${diff}m</span>`;}
-    return `<div class="fuc"><div class="fu-d" style="background:${c.bg}"><div class="fu-day" style="color:${c.fg}">${d.getDate()}</div><div class="fu-mon" style="color:${c.fg}">${d.toLocaleString('default',{month:'short'})}</div>${l.next_time?`<div class="fu-time" style="background:${c.bg};color:${c.fg}">${fmt12(l.next_time)}</div>`:''}</div><div class="fu-bd"><div class="fu-nm">${l.name}${ub}</div><div class="fu-mt">${uname(l.assign)} · ${l.phone} · <span class="sp ${scls(l.status)}">${l.status}</span></div>${l.comments?.length?`<div style="font-size:11px;color:var(--tx3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.comments[l.comments.length-1].text.slice(0,70)}</div>`:''}</div><div class="fu-btns"><button class="btn btn-p btn-sm" onclick="openEdit('${l.id}')">Edit</button></div></div>`;
+    return `<div class="fuc"><div class="fu-d" style="background:${c.bg}"><div class="fu-day" style="color:${c.fg}">${d.getDate()}</div><div class="fu-mon" style="color:${c.fg}">${d.toLocaleString('default',{month:'short'})}</div>${l.next_time?`<div class="fu-time" style="background:${c.bg};color:${c.fg}">${fmt12(l.next_time)}</div>`:''}</div><div class="fu-bd"><div class="fu-nm">${l.name}${ub}</div><div class="fu-mt">${uname(l.assign)} · ${l.phone} · <span class="sp ${scls(l.status)}">${l.status}</span></div>${l.comments?.length?`<div style="font-size:11px;color:var(--tx3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.comments[l.comments.length-1].text.slice(0,70)}</div>`:''}</div><div class="fu-btns"><button class="btn btn-p btn-sm" onclick="openEdit('${l.id}')">Edit</button><button class="btn btn-wa btn-sm" onclick="waReminder('${l.id}')">💬 WA</button></div></div>`;
   };
   let html='';
   if(ov.length)html+=`<div class="fuh" style="color:var(--r)">⚠ Overdue (${ov.length})</div>`+ov.map(l=>card(l,'overdue')).join('');
@@ -708,13 +761,14 @@ function renderReports(){
     <div class="sc g"><div class="sc-ico">✅</div><div class="sc-v">${cl}</div><div class="sc-l">Total Closed</div></div>
     <div class="sc pu"><div class="sc-ico">📊</div><div class="sc-v">${conv}%</div><div class="sc-l">Conversion</div></div>
     <div class="sc r"><div class="sc-ico">❌</div><div class="sc-v">${AL.filter(l=>l.status==='Lost').length}</div><div class="sc-l">Lost</div></div>`;
-  const srcs=['Magicbricks','99acres','JD Website','Reference','Walk-in'];
-  const sColors=['#ea580c','#dc2626','#2563eb','#10b981','#8b5cf6'];
-  const stages=['New','Active','Site Visit','Negotiation','Closed','Lost'];
-  const stC=['#2563eb','#10b981','#f59e0b','#8b5cf6','#059669','#ef4444'];
+  const srcs=['Magicbricks','99acres','Housing','JD Website','Reference','Walk-in'];
+  const sColors=['#ea580c','#dc2626','#0891b2','#2563eb','#10b981','#8b5cf6'];
+  const stages=['New','Active','Warm','Follow Up','Site Visit','Negotiation','Closed','Lost'];
+  const stC=['#2563eb','#10b981','#f97316','#d946ef','#f59e0b','#8b5cf6','#059669','#ef4444'];
+  const stIco=['🆕','🔄','🔥','📞','👀','🤝','✅','❌'];
   document.getElementById('rep-charts').innerHTML=`
     <div class="rc"><h4>📡 Leads by Source</h4>${srcs.map((s,i)=>{const cnt=AL.filter(l=>l.source===s).length;const pct=tot?Math.round(cnt/tot*100):0;return`<div class="br"><div class="br-l">${s}</div><div class="br-t"><div class="br-f" style="width:${pct}%;background:${sColors[i]}"></div></div><div class="br-v">${cnt}</div></div>`;}).join('')}</div>
-    <div class="rc"><h4>🔄 Pipeline</h4>${stages.map((s,i)=>{const cnt=AL.filter(l=>l.status===s).length;const pct=tot?Math.round(cnt/tot*100):0;return`<div class="fs2"><div class="fs2-ic" style="background:${stC[i]}22">${['🆕','🔄','👀','🤝','✅','❌'][i]}</div><div><div class="fs2-l">${s}</div><div class="fs2-s">${pct}% of total</div></div><div class="fs2-c" style="color:${stC[i]}">${cnt}</div></div>`;}).join('')}</div>`;
+    <div class="rc"><h4>🔄 Pipeline</h4>${stages.map((s,i)=>{const cnt=AL.filter(l=>l.status===s).length;const pct=tot?Math.round(cnt/tot*100):0;return`<div class="fs2"><div class="fs2-ic" style="background:${stC[i]}22">${stIco[i]}</div><div><div class="fs2-l">${s}</div><div class="fs2-s">${pct}% of total</div></div><div class="fs2-c" style="color:${stC[i]}">${cnt}</div></div>`;}).join('')}</div>`;
   document.getElementById('ap-body').innerHTML=AU.map(u=>{
     const uL=AL.filter(l=>l.assign===u.email),uT=uL.length,uA=uL.filter(l=>l.status==='Active').length,uC=uL.filter(l=>l.status==='Closed').length,uLs=uL.filter(l=>l.status==='Lost').length,cv=uT?Math.round(uC/uT*100):0;
     return `<tr><td><strong>${u.name}</strong></td><td>${uT}</td><td>${uA}</td><td style="color:var(--g);font-weight:700">${uC}</td><td style="color:var(--r)">${uLs}</td><td><span style="font-weight:700;color:${cv>=50?'var(--g)':cv>=20?'var(--o)':'var(--r)'}">${cv}%</span></td></tr>`;
@@ -740,7 +794,7 @@ function renderAdmin(){
 }
 
 function openEdit(id){
-  const l=AL.find(x=>x.id===id);if(!l)return;editId=id;
+  const l=AL.find(x=>x.id===id);if(!l)return;editId=id;editImgData=l.property_image||'';
   document.getElementById('edit-title').textContent=l.name;
   document.getElementById('edit-sub').textContent=`${l.phone} · ${l.source||'—'} · ${l.bhk||''}`;
   populateDDs();
@@ -751,13 +805,16 @@ function openEdit(id){
   document.getElementById('e-nd').value=l.next_call||'';
   document.getElementById('e-nt').value=l.next_time||'';
   document.getElementById('e-cmt').value='';toggleDead();
+  document.getElementById('e-img').value='';
+  const eimg=document.getElementById('e-img-prev');
+  if(l.property_image){eimg.src=l.property_image;eimg.classList.add('on');}else{eimg.src='';eimg.classList.remove('on');}
   const log=document.getElementById('e-log');
   const cmts=l.comments||[];
   log.innerHTML=cmts.length?cmts.map(c=>`<div class="ce"><span class="ce-by">${uname(c.by)}</span><span class="ce-dt">${c.dt}</span><div class="ce-t">${c.text}</div></div>`).join(''):'<div style="color:var(--tx3);text-align:center;padding:10px;font-size:12px">No comments yet.</div>';
   log.scrollTop=log.scrollHeight;
   document.getElementById('edit-ov').classList.add('on');
 }
-function closeEdit(){document.getElementById('edit-ov').classList.remove('on');editId=null;}
+function closeEdit(){document.getElementById('edit-ov').classList.remove('on');editId=null;editImgData='';}
 function toggleDead(){document.getElementById('dead-row').style.display=document.getElementById('e-status').value==='Lost'?'grid':'none';}
 async function saveLead(){
   const btn=document.getElementById('sv-btn');btn.disabled=true;btn.textContent='Saving...';
@@ -765,11 +822,43 @@ async function saveLead(){
   if(!l){btn.disabled=false;btn.textContent='Update Lead';return;}
   const nc=document.getElementById('e-cmt').value.trim();
   const comments=[...(l.comments||[])];if(nc)comments.push({by:CU.email,dt:ts(),text:nc});
-  const updated={...l,assign:document.getElementById('e-assign').value||CU.email,status:document.getElementById('e-status').value,dead_reason:document.getElementById('e-dr').value,dead_sub:document.getElementById('e-ds').value,next_call:document.getElementById('e-nd').value,next_time:document.getElementById('e-nt').value,comments};
+  const updated={...l,assign:document.getElementById('e-assign').value||CU.email,status:document.getElementById('e-status').value,dead_reason:document.getElementById('e-dr').value,dead_sub:document.getElementById('e-ds').value,next_call:document.getElementById('e-nd').value,next_time:document.getElementById('e-nt').value,property_image:editImgData,comments};
   const ok=await dbSL(updated);
   if(ok){const idx=AL.findIndex(x=>x.id===editId);if(idx>-1)AL[idx]=updated;closeEdit();renderEnq();renderDash();checkNotifs();}
   else alert('Error saving. Check internet connection.');
   btn.disabled=false;btn.textContent='Update Lead';
+}
+
+function openView(id){
+  const l=AL.find(x=>x.id===id);if(!l)return;viewId=id;
+  document.getElementById('view-title').textContent=l.name;
+  document.getElementById('view-sub').textContent=`Added ${l.created_at?new Date(l.created_at).toLocaleDateString('en-IN'):''}`;
+  const vimg=document.getElementById('v-img');
+  if(l.property_image){vimg.src=l.property_image;vimg.classList.add('on');}else{vimg.src='';vimg.classList.remove('on');}
+  document.getElementById('v-phone').textContent=l.phone||'—';
+  document.getElementById('v-email').textContent=l.email||'—';
+  document.getElementById('v-source').textContent=l.source||'—';
+  document.getElementById('v-bhk').textContent=l.bhk||'—';
+  document.getElementById('v-budget').textContent=l.budget||'—';
+  document.getElementById('v-area').textContent=l.area||'—';
+  document.getElementById('v-status').innerHTML=`<span class="sp ${scls(l.status)}">${l.status}</span>`;
+  document.getElementById('v-agent').textContent=uname(l.assign);
+  document.getElementById('v-nf').textContent=l.next_call?l.next_call+(l.next_time?' '+fmt12(l.next_time):''):'—';
+  const log=document.getElementById('v-log');
+  const cmts=l.comments||[];
+  log.innerHTML=cmts.length?cmts.map(c=>`<div class="ce"><span class="ce-by">${uname(c.by)}</span><span class="ce-dt">${c.dt}</span><div class="ce-t">${c.text}</div></div>`).join(''):'<div style="color:var(--tx3);text-align:center;padding:10px;font-size:12px">No comments yet.</div>';
+  document.getElementById('view-ov').classList.add('on');
+}
+function closeView(){document.getElementById('view-ov').classList.remove('on');viewId=null;}
+
+function waReminder(id){
+  const l=AL.find(x=>x.id===id);if(!l){alert('Lead not found.');return;}
+  let phone=(l.phone||'').replace(/\D/g,'');
+  if(!phone){alert('No mobile number for this lead.');return;}
+  if(phone.length===10)phone='91'+phone;
+  const fu=l.next_call?` on ${l.next_call}${l.next_time?' at '+fmt12(l.next_time):''}`:'';
+  const msg=`Hi ${l.name}, this is a follow-up reminder from Jay Dwarkadhish Real Estate regarding your enquiry${fu}. Please let us know a good time to talk. Thank you!`;
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank');
 }
 
 function openNewEnq(){
@@ -777,6 +866,8 @@ function openNewEnq(){
   ['n-nm','n-ph','n-em','n-bgt','n-area','n-cmt','n-nd','n-nt'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('n-src').value='Magicbricks';document.getElementById('n-bhk').value='';
   document.getElementById('n-ag').value=CU?.email||'';
+  document.getElementById('n-img').value='';newImgData='';
+  const nimg=document.getElementById('n-img-prev');nimg.src='';nimg.classList.remove('on');
   document.getElementById('new-ov').classList.add('on');
 }
 function closeNew(){document.getElementById('new-ov').classList.remove('on');}
@@ -786,7 +877,7 @@ async function saveNew(){
   const btn=document.getElementById('sv-new-btn');btn.disabled=true;btn.textContent='Saving...';
   const cmt=document.getElementById('n-cmt').value.trim();
   const assignTo=document.getElementById('n-ag').value||CU?.email||'';
-  const lead={id:uid(),name,phone,email:document.getElementById('n-em').value.trim(),source:document.getElementById('n-src').value,bhk:document.getElementById('n-bhk').value,budget:document.getElementById('n-bgt').value.trim(),area:document.getElementById('n-area').value.trim(),assign:assignTo,status:'New',dead_reason:'',dead_sub:'',next_call:document.getElementById('n-nd').value,next_time:document.getElementById('n-nt').value,comments:cmt?[{by:CU.email,dt:ts(),text:cmt}]:[]};
+  const lead={id:uid(),name,phone,email:document.getElementById('n-em').value.trim(),source:document.getElementById('n-src').value,bhk:document.getElementById('n-bhk').value,budget:document.getElementById('n-bgt').value.trim(),area:document.getElementById('n-area').value.trim(),assign:assignTo,status:'New',dead_reason:'',dead_sub:'',next_call:document.getElementById('n-nd').value,next_time:document.getElementById('n-nt').value,property_image:newImgData,comments:cmt?[{by:CU.email,dt:ts(),text:cmt}]:[]};
   const ok=await dbSL(lead);
   if(ok){AL=[lead,...AL];populateDDs();closeNew();renderEnq();renderDash();checkNotifs();}
   else alert('Error saving. Check internet connection.');
@@ -861,7 +952,7 @@ async function gBackup(){
 }
 function dlFile(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},200);}
 
-['edit-ov','new-ov','prof-ov','mem-ov','rst-ov'].forEach(id=>{document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('on');});});
+['edit-ov','new-ov','view-ov','prof-ov','mem-ov','rst-ov'].forEach(id=>{document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)document.getElementById(id).classList.remove('on');});});
 
 async function initApp(){
   try{
