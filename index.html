@@ -1638,7 +1638,8 @@ document.addEventListener('keydown',e=>{
 window.addEventListener('online',()=>{showNB('✅ Back online!');setTimeout(()=>{schedRT();},500);});
 window.addEventListener('offline',()=>{showNB('⚠️ You are offline. Changes will sync when reconnected.');});
 
-
+// Modal overlay click-to-close
+['edit-ov','new-ov','view-ov','prof-ov','mem-ov','rst-ov','prop-ov'].forEach(id=>{
   const el=document.getElementById(id);if(el)el.addEventListener('click',e=>{if(e.target===e.currentTarget)el.classList.remove('on');});
 });
 
