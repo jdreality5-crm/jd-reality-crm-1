@@ -411,6 +411,17 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
 .wa-tpl-h{font-size:13px;font-weight:800;color:var(--dk);margin-bottom:6px;}
 .wa-tpl-p{font-size:12px;color:var(--tx2);line-height:1.6;}
 
+/* DASHBOARD INQUIRY TABLE — Old blue-header style */
+.d-inq-wrap{background:#fff;border-radius:var(--rad);border:1px solid var(--bd);overflow:hidden;box-shadow:var(--sh);}
+.d-inq-hdr{background:var(--grad2);color:rgba(255,255,255,.9);padding:10px 18px;font-size:13px;font-weight:800;letter-spacing:.3px;}
+.d-inq-table{width:100%;border-collapse:collapse;}
+.d-inq-table thead th{background:#1a3a8f;color:#fff;padding:11px 16px;text-align:left;font-size:12px;font-weight:700;white-space:nowrap;letter-spacing:.3px;}
+.d-inq-table tbody tr{border-bottom:1px solid var(--bd);}
+.d-inq-table tbody tr:last-child{border-bottom:none;}
+.d-inq-table tbody tr:nth-child(even){background:#f8f9ff;}
+.d-inq-table tbody tr:hover{background:#eef2ff;}
+.d-inq-table tbody td{padding:11px 16px;font-size:13px;vertical-align:middle;}
+
 /* RESPONSIVE */
 @media(max-width:768px){
   .sb{width:272px;transform:translateX(-100%);}
@@ -578,11 +589,28 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
           </div>
         </div>
 
-        <!-- INQUIRIES TABLE -->
+        <!-- INQUIRIES TABLE — Old blue-header style -->
         <div style="margin-top:16px;">
-          <div style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--dk)">📋 Inquiries</div>
-          <div class="tw">
-            <div style="overflow-x:auto"><table><thead><tr><th>Client</th><th>Mobile</th><th>Source</th><th>Status</th><th>Agent</th><th>Next Follow-up</th><th>Actions</th></tr></thead><tbody id="d-inq-body"></tbody></table></div>
+          <div class="d-inq-wrap">
+            <div class="d-inq-hdr">
+              <span>📋 Inquiries</span>
+            </div>
+            <div style="overflow-x:auto">
+              <table class="d-inq-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Call/Mobile</th>
+                    <th>Source</th>
+                    <th>Status</th>
+                    <th>Agent</th>
+                    <th>Next Follow-up</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="d-inq-body"></tbody>
+              </table>
+            </div>
           </div>
         </div>
       </div>
@@ -1386,12 +1414,23 @@ function pg(name,el,silent=false){
 /* ---- DASHBOARD ---- */
 function renderDash(){
   const td=today();
-  // FIX: agent ko sirf apni assigned leads dikhni chahiye, admin ko sab leads
-  const dashL=AL.filter(l=>l.assign===CU.email);
-  const tot=dashL.length,act=dashL.filter(l=>l.status==='Active').length,cl=dashL.filter(l=>l.status==='Closed').length,ls=dashL.filter(l=>l.status==='Lost').length;
-  const bk=dashL.filter(l=>l.status==='Booking Done').length;
+  const isAdmin=CU&&CU.type==='admin';
+
+  // Today's Call: sirf apni assigned leads (admin ke liye bhi sirf unki appointed leads)
+  const myLeads=AL.filter(l=>l.assign===CU.email);
+  const tfu=myLeads.filter(l=>l.next_call===td&&l.status!=='Closed'&&l.status!=='Lost').length;
+
+  // Active & Backlog: apni leads se (same as before)
+  const dashL=myLeads;
+  const act=dashL.filter(l=>l.status==='Active').length;
   const ov=dashL.filter(l=>l.next_call&&l.next_call<td&&l.status!=='Closed'&&l.status!=='Lost'&&l.status!=='Booking Done').length;
-  const tfu=dashL.filter(l=>l.next_call===td&&l.status!=='Closed'&&l.status!=='Lost').length;
+  const bk=dashL.filter(l=>l.status==='Booking Done').length;
+
+  // Total Lead & Lost: admin ke liye ALL leads (admin+agents), agent ke liye sirf apni
+  const totalLeads=isAdmin?AL:myLeads;
+  const tot=totalLeads.length;
+  const ls=totalLeads.filter(l=>l.status==='Lost').length;
+
   document.getElementById('dash-date-sub').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
 
   document.getElementById('d-stats').innerHTML=`
@@ -1405,10 +1444,9 @@ function renderDash(){
   renderCalendarView();
 
   const rw=document.getElementById('d-inq-body');
-  // Show only this agent's inquiries (admin sees all), sorted by newest first
-  // FIX: use created_at (Supabase timestamp) as primary sort, fallback to id
-  // Lost leads dashboard inquiries mein nahi dikhni chahiye
-  const sorted=[...dashL].filter(l=>l.status!=='Lost').sort((a,b)=>{
+  // Inquiry section: admin ko sab leads, agent ko sirf apni — Lost nahi dikhni
+  const inqLeads=isAdmin?AL:myLeads;
+  const sorted=[...inqLeads].filter(l=>l.status!=='Lost').sort((a,b)=>{
     const ta=b.created_at||b.created||b.id||'';
     const tb2=a.created_at||a.created||a.id||'';
     return ta.localeCompare(tb2);
