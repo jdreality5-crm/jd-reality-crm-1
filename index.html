@@ -1398,7 +1398,12 @@ function renderDash(){
 
   const rw=document.getElementById('d-inq-body');
   // Show only this agent's inquiries (admin sees all), sorted by newest first
-  const sorted=[...dashL].sort((a,b)=>(b.created||'').localeCompare(a.created||''));
+  // FIX: use created_at (Supabase timestamp) as primary sort, fallback to id
+  const sorted=[...dashL].sort((a,b)=>{
+    const ta=b.created_at||b.created||b.id||'';
+    const tb2=a.created_at||a.created||a.id||'';
+    return ta.localeCompare(tb2);
+  });
   rw.innerHTML=sorted.length?sorted.map(l=>`<tr>
     <td><div class="ln" onclick="openEdit('${l.id}')" style="font-weight:700">${l.name}</div></td>
     <td style="font-size:12px">${l.phone}</td>
@@ -1972,8 +1977,17 @@ async function changePw(){
 
   // Save Name / Email / Mobile first (always), matching the row by the OLD email
   if(nameChanged||emailChanged||mobChanged){
-    const updateFields={name:newName,email:newEmail,mobile:mob};
-    const{error}=await sb.from('users').update(updateFields).eq('email',oldEmail);
+    // Try with mobile first; if Supabase says column missing, retry without mobile
+    let updateFields={name:newName,email:newEmail};
+    if(mob||mobChanged) updateFields.mobile=mob;
+    let{error}=await sb.from('users').update(updateFields).eq('email',oldEmail);
+    if(error&&error.message&&error.message.toLowerCase().includes('mobile')){
+      // mobile column doesn't exist in DB — save without it
+      console.warn('mobile column missing, saving without mobile');
+      const{name:n,email:e}={name:newName,email:newEmail};
+      const res=await sb.from('users').update({name:n,email:e}).eq('email',oldEmail);
+      error=res.error;
+    }
     if(error){
       console.error('profile update error:',error);
       showMsg('p-msg','❌ Error saving: '+error.message,false);
