@@ -171,6 +171,7 @@ nav{flex:1;padding:8px 8px;}
 @keyframes quoteFade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
 @media(max-width:500px){.tb-anim-title{font-size:12px;}}
 .tb-r{display:flex;align-items:center;gap:10px;}
+@keyframes sigPulse{0%,100%{transform:scale(1);opacity:.35;}50%{transform:scale(2.2);opacity:0;}}
 .tb-date{font-size:11px;color:var(--tx3);font-weight:600;background:var(--bg2);padding:5px 12px;border-radius:20px;}
 .on-badge{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:var(--gl);color:var(--g);}
 .nb-btn{position:relative;background:var(--bg2);border:none;width:38px;height:38px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:var(--tr);}
@@ -522,7 +523,20 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
       </div>
       <div class="tb-r">
         <span class="tb-date" id="tb-date"></span>
-        <span class="on-badge">☁️ Online</span>
+        <!-- Live indicator dot (replaces ☁️ Online badge) -->
+        <div style="position:relative;width:10px;height:10px;flex-shrink:0;" title="Online">
+          <div style="position:absolute;inset:0;border-radius:50%;background:#22c55e;opacity:.35;animation:sigPulse 2s ease-in-out infinite;"></div>
+          <div style="position:absolute;inset:2px;border-radius:50%;background:#22c55e;"></div>
+        </div>
+        <!-- Mini Calendar in topbar (box marked 1) -->
+        <div id="cal-mini-box" onclick="openCalModal()" style="background:#fff;border:1.5px solid var(--pm);border-radius:10px;padding:6px 12px;cursor:pointer;transition:var(--tr);box-shadow:var(--sh);user-select:none;display:flex;align-items:center;gap:8px;height:38px;" onmouseenter="this.style.boxShadow='var(--shm)';this.style.borderColor='var(--p)'" onmouseleave="this.style.boxShadow='var(--sh)';this.style.borderColor='var(--pm)'">
+          <span style="font-size:15px;flex-shrink:0">📅</span>
+          <div style="display:flex;flex-direction:column;justify-content:center;line-height:1.3;">
+            <div style="font-size:11px;font-weight:800;color:var(--dk)" id="cal-mini-month"></div>
+            <div style="font-size:9px;color:var(--p);font-weight:700" id="cal-mini-info">— follow-ups</div>
+          </div>
+          <div id="cal-mini-grid" style="display:none;"></div>
+        </div>
         <button class="nb-btn" onclick="pg('followups',document.getElementById('ni-followups'))">🔔<span class="nb-dot2" id="nb-dot2">0</span></button>
         <div class="tb-av" id="tb-av" onclick="openProfile()"></div>
       </div>
@@ -533,24 +547,6 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
       <div id="ps-dashboard" class="ps on">
         <div class="ph"><div><div class="ph-h">Dashboard</div><div class="ph-s" id="dash-date-sub"></div></div></div>
         <div class="sg" id="d-stats"></div>
-
-        <!-- COMPACT CALENDAR WIDGET (click to open full) -->
-        <!-- Calendar compact box + Inquiries below -->
-        <div style="display:grid;grid-template-columns:auto 1fr;gap:16px;margin-bottom:16px;align-items:start;">
-          <!-- Calendar compact box -->
-          <div id="cal-mini-box" onclick="openCalModal()" style="background:#fff;border:2px solid var(--pm);border-radius:var(--rad);padding:14px 18px;cursor:pointer;transition:var(--tr);box-shadow:var(--sh);min-width:180px;max-width:200px;user-select:none;" onmouseenter="this.style.boxShadow='var(--shm)';this.style.borderColor='var(--p)'" onmouseleave="this.style.boxShadow='var(--sh)';this.style.borderColor='var(--pm)'">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
-              <span style="font-size:18px">📅</span>
-              <div>
-                <div style="font-size:12px;font-weight:800;color:var(--dk)" id="cal-mini-month"></div>
-                <div style="font-size:10px;color:var(--tx3);font-weight:500">Click to view full</div>
-              </div>
-            </div>
-            <div id="cal-mini-grid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;"></div>
-            <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--bd);font-size:10px;color:var(--p);font-weight:700;text-align:center" id="cal-mini-info">— follow-ups this month</div>
-          </div>
-          <!-- Today's Follow-ups panel removed -->
-        </div>
 
         <!-- FULL CALENDAR MODAL -->
         <div id="cal-modal-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;align-items:center;justify-content:center;">
@@ -582,8 +578,8 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
           </div>
         </div>
 
-        <!-- INQUIRIES TABLE (below calendar) -->
-        <div style="margin-top:8px;">
+        <!-- INQUIRIES TABLE -->
+        <div style="margin-top:16px;">
           <div style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--dk)">📋 Inquiries</div>
           <div class="tw">
             <div style="overflow-x:auto"><table><thead><tr><th>Client</th><th>Mobile</th><th>Source</th><th>Status</th><th>Agent</th><th>Next Follow-up</th><th>Actions</th></tr></thead><tbody id="d-inq-body"></tbody></table></div>
