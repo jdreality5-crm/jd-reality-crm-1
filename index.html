@@ -1,0 +1,2479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0f1e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Jay Dwarkadhish Real Estate — CRM v10</title>
+<!-- DNS + TCP preconnect for all external domains -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://fwngicuftpodzsfanhfb.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://jaydwarkadhishrealestate.com">
+<!-- Font: non-blocking load -->
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"></noscript>
+<!-- Supabase: must be sync (used immediately). XLSX+EmailJS: defer (used only after login) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer crossorigin="anonymous"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --p:#4f46e5;--pd:#4338ca;--pl:#eef2ff;--pm:#c7d2fe;
+  --g:#059669;--gl:#ecfdf5;
+  --r:#dc2626;--rl:#fef2f2;
+  --o:#ea580c;--ol:#fff7ed;
+  --pu:#7c3aed;--pul:#f5f3ff;
+  --a:#d97706;--al:#fffbeb;
+  --gold:#f59e0b;
+  --dk:#0a0f1e;--dk2:#111827;--dk3:#1a2235;
+  --bg:#f0f4ff;--bg2:#e8edf8;--bd:#dde3f0;--bd2:#c8d0e7;
+  --tx:#0a0f1e;--tx2:#374151;--tx3:#6b7280;
+  --wh:#fff;--sw:260px;
+  --rad:14px;--rad2:10px;--rad3:8px;
+  --sh:0 2px 8px rgba(79,70,229,.07),0 1px 3px rgba(0,0,0,.05);
+  --shm:0 8px 32px rgba(79,70,229,.15);
+  --shl:0 20px 60px rgba(0,0,0,.18);
+  --tr:all .2s cubic-bezier(.4,0,.2,1);
+  --grad:linear-gradient(135deg,#4f46e5,#7c3aed);
+  --grad2:linear-gradient(135deg,#0a0f1e,#1a2235);
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;-webkit-tap-highlight-color:transparent;}
+
+/* LOADER */
+#ld{position:fixed;inset:0;background:var(--grad2);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .25s;}
+#ld.gone{opacity:0;pointer-events:none;}
+.ld-logo{font-size:48px;margin-bottom:4px;filter:drop-shadow(0 4px 20px rgba(99,102,241,.5));}
+.ld-ring{width:48px;height:48px;border:3px solid rgba(255,255,255,.1);border-top-color:#818cf8;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ld-txt{color:#fff;font-size:16px;font-weight:800;letter-spacing:.3px;}
+.ld-sub{color:rgba(255,255,255,.4);font-size:12px;font-weight:500;}
+.ld-bar-wrap{width:200px;height:3px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;}
+.ld-bar{height:100%;background:linear-gradient(90deg,#818cf8,#a78bfa);border-radius:4px;width:0%;animation:ldprog 1.4s ease-out forwards;}
+@keyframes ldprog{0%{width:0%;}30%{width:60%;}60%{width:80%;}85%{width:92%;}100%{width:96%;}}
+/* ===== FIX: Hide ALL browser scan/lens/3dot icons on images & inputs ===== */
+img { -webkit-user-select:none;user-select:none;pointer-events:none; }
+img.ll-logo, img.lr-logo { -webkit-user-drag:none;user-drag:none; }
+/* Hide Chrome/Edge image lens/search icon */
+img::-webkit-media-controls { display:none!important; }
+/* Hide browser autofill scan & 3-dot on inputs */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-strong-password-auto-fill-button,
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-inner-spin-button { visibility:hidden!important;display:none!important;pointer-events:none!important; }
+/* Prevent Chrome image right-click/search overlay */
+.ll-logo, .lr-logo { display:block;-webkit-touch-callout:none; }
+/* Loader hide: use display:none after gone for perf */
+#ld.gone { opacity:0;pointer-events:none;display:none!important; }
+.ld-retry{display:none;margin-top:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);padding:8px 20px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;}
+.ld-retry:hover{background:rgba(255,255,255,.2);color:#fff;}
+
+/* NOTIFICATION BAR */
+#nb{position:fixed;top:0;left:0;right:0;z-index:8000;display:none;background:linear-gradient(90deg,#dc2626,#ef4444);color:#fff;padding:11px 18px;font-size:13px;font-weight:600;align-items:center;gap:10px;box-shadow:0 4px 20px rgba(220,38,38,.4);}
+#nb.on{display:flex;}
+.nb-dot{width:7px;height:7px;border-radius:50%;background:#fff;flex-shrink:0;animation:pulse2 1s infinite;}
+@keyframes pulse2{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(1.6);}}
+.nb-x{margin-left:auto;background:rgba(255,255,255,.2);border:none;color:#fff;width:26px;height:26px;border-radius:50%;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;}
+#sy{position:fixed;bottom:20px;right:20px;z-index:7000;background:var(--g);color:#fff;border-radius:24px;padding:8px 16px;font-size:11px;font-weight:700;display:none;align-items:center;gap:6px;box-shadow:var(--shm);}
+#sy.on{display:flex;}
+
+/* LOGIN */
+#login{display:none;min-height:100vh;background:var(--dk);}
+#login.show{display:flex;}
+.ll{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 40px;background:linear-gradient(150deg,#0a0f1e 0%,#111827 50%,#1e1b4b 100%);position:relative;overflow:hidden;}
+.ll::before{content:'';position:absolute;top:-120px;right:-120px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(79,70,229,.2) 0%,transparent 70%);}
+.ll::after{content:'';position:absolute;bottom:-80px;left:-80px;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(124,58,237,.15) 0%,transparent 70%);}
+.ll-logo{width:160px;margin-bottom:28px;filter:drop-shadow(0 4px 24px rgba(99,102,241,.5));}
+.ll-badge{background:rgba(99,102,241,.2);border:1px solid rgba(129,140,248,.3);color:#a5b4fc;border-radius:24px;padding:5px 16px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:28px;}
+.ll-h{font-size:32px;font-weight:900;color:#fff;text-align:center;line-height:1.15;margin-bottom:10px;}
+.ll-h span{background:linear-gradient(135deg,#818cf8,#a78bfa,#c4b5fd,#4f46e5,#818cf8);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:greetShine 3s ease infinite;}
+@keyframes llNamePulse{0%{opacity:1;}100%{opacity:1;}}
+@keyframes llSpanShine{0%{opacity:1;}100%{opacity:1;}}
+.ll-sub{font-size:13px;color:rgba(255,255,255,.4);text-align:center;line-height:1.8;max-width:280px;}
+.ll-addr{margin-top:28px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px 20px;font-size:11px;color:rgba(255,255,255,.4);line-height:2;text-align:center;}
+.ll-stats{display:flex;gap:36px;margin-top:32px;}
+.ls-v{font-size:26px;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;}
+.ls-l{font-size:9px;color:rgba(255,255,255,.3);text-align:center;text-transform:uppercase;letter-spacing:1.5px;margin-top:3px;}
+.lr{width:440px;background:#fff;display:flex;align-items:center;justify-content:center;padding:52px 48px 52px 44px;}
+.lr-box{width:100%;}
+.lr-logo{width:200px;display:block;margin-bottom:20px;margin-left:0;margin-top:30px;}
+.lr-h{font-size:26px;font-weight:900;color:var(--dk);margin-bottom:4px;}
+.lr-sub{font-size:13px;color:var(--tx3);margin-bottom:30px;}
+.li-lbl{display:block;font-size:11px;font-weight:700;color:var(--tx2);margin-bottom:6px;letter-spacing:.4px;}
+.li-in{width:100%;padding:12px 14px;border:1.5px solid var(--bd);border-radius:var(--rad2);font-size:14px;font-family:inherit;outline:none;background:#fafbfc;color:var(--tx);transition:var(--tr);margin-bottom:14px;}
+.li-in:focus{border-color:var(--p);background:#fff;box-shadow:0 0 0 3px rgba(79,70,229,.1);}
+.li-err{color:var(--r);font-size:12px;margin-bottom:12px;padding:10px 14px;background:var(--rl);border-radius:var(--rad3);display:none;font-weight:500;}
+.li-btn{width:100%;padding:13px;background:var(--grad);color:#fff;border:none;border-radius:var(--rad2);font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;transition:var(--tr);letter-spacing:.3px;}
+.li-btn:hover:not(:disabled){box-shadow:0 4px 20px rgba(79,70,229,.4);transform:translateY(-1px);}
+.li-btn:disabled{background:var(--bd2);cursor:not-allowed;transform:none;}
+.li-foot{margin-top:24px;padding-top:20px;border-top:1px solid var(--bd);font-size:11px;color:var(--tx3);text-align:center;line-height:1.8;}
+.cpill{display:inline-flex;align-items:center;gap:6px;background:var(--gl);color:var(--g);border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;margin-bottom:22px;border:1px solid #a7f3d0;}
+
+/* APP LAYOUT */
+#app{display:none;min-height:100vh;}
+#app.show{display:block;}
+.layout{display:flex;min-height:100vh;}
+
+/* SIDEBAR - WHITE THEME */
+.sb{width:var(--sw);background:#fff;border-right:1px solid var(--bd);border-top:1px solid var(--bd);display:flex;flex-direction:column;position:fixed;inset-y:0;left:0;z-index:400;transition:transform .26s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:2px 0 16px rgba(79,70,229,.06);}
+.sb::before{display:none;}
+.sb-head{padding:0;border-bottom:1px solid var(--bd);background:#fff;line-height:0;margin-top:-4px;}
+.sb-brand{display:flex;align-items:center;gap:11px;}
+.sb-bicon{width:38px;height:38px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.sb-bname{font-size:13px;font-weight:800;color:var(--dk);line-height:1.2;}
+.sb-btag{font-size:8px;color:var(--tx3);letter-spacing:1px;text-transform:uppercase;margin-top:2px;font-weight:600;}
+.sb-user{padding:10px 10px;border-bottom:1px solid var(--bd);background:#fafbff;}
+.sb-u{display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:10px;transition:var(--tr);}
+.sb-u:hover{background:var(--pl);}
+.sb-av{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;border:2px solid var(--bd);overflow:hidden;}
+.sb-av img{width:100%;height:100%;object-fit:cover;}
+.sb-un{font-size:13px;color:var(--dk);font-weight:700;}
+.sb-ur{font-size:10px;color:var(--tx3);font-weight:500;}
+nav{flex:1;padding:8px 8px;}
+.nav-sec{font-size:9px;font-weight:800;color:var(--tx3);letter-spacing:1.5px;text-transform:uppercase;padding:12px 10px 5px;}
+.ni{display:flex;align-items:center;gap:10px;padding:9px 10px;color:var(--tx2);font-size:13px;cursor:pointer;border-radius:10px;transition:var(--tr);margin-bottom:2px;font-weight:500;position:relative;}
+.ni:hover{background:var(--pl);color:var(--p);}
+.ni.on{background:linear-gradient(135deg,rgba(79,70,229,.12),rgba(124,58,237,.08));color:var(--p);font-weight:700;border:1px solid var(--pm);}
+.ni.on::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:22px;background:var(--grad);border-radius:0 3px 3px 0;}
+.ni-icon{width:30px;height:30px;border-radius:8px;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ni.on .ni-icon{background:var(--pl);}
+.ni-badge{margin-left:auto;background:var(--r);color:#fff;border-radius:9px;padding:2px 7px;font-size:10px;font-weight:800;}
+.sb-foot{padding:12px 10px;border-top:1px solid var(--bd);background:#fff;}
+.lo-btn{width:100%;padding:10px;background:#fef2f2;color:#dc2626;border:1px solid #fecaca;border-radius:10px;font-size:13px;cursor:pointer;font-family:inherit;font-weight:700;transition:var(--tr);}
+.lo-btn:hover{background:#dc2626;color:#fff;}
+.sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:350;}
+.sb-ov.on{display:block;}
+
+/* TOPBAR */
+.main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-width:0;}
+.tb{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:0 24px;height:72px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;box-shadow:0 2px 12px rgba(79,70,229,.06);}
+.tb-l{display:flex;align-items:center;gap:14px;}
+.hbg{display:none;background:none;border:none;cursor:pointer;padding:7px;border-radius:8px;flex-direction:column;gap:4px;}
+.hbg span{display:block;width:20px;height:2px;background:var(--tx2);border-radius:2px;}
+.tb-title{font-size:18px;font-weight:900;color:var(--dk);letter-spacing:-.3px;}
+.tb-anim-title{font-size:15px;font-weight:900;letter-spacing:.2px;display:flex;align-items:center;gap:0;position:relative;}
+.tb-word1{display:inline-block;color:#f97316;animation:tbPulse1 3s ease-in-out infinite;}
+.tb-word2{display:inline-block;background:linear-gradient(135deg,#4f46e5,#7c3aed);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:tbPulse2 3s ease-in-out infinite;animation-delay:.4s;}
+.tb-word3{display:inline-block;color:#059669;animation:tbPulse3 3s ease-in-out infinite;animation-delay:.8s;}
+.tb-anim-title::after{content:'';position:absolute;bottom:-3px;left:0;width:100%;height:2px;background:linear-gradient(90deg,#f97316,#4f46e5,#059669);border-radius:2px;animation:tbUnderline 3s ease-in-out infinite;}
+@keyframes greetShine{0%{background-position:0% 50%;}50%{background-position:100% 50%;}100%{background-position:0% 50%;}}
+.tb-greeting-anim{font-size:18px;font-weight:900;letter-spacing:-.2px;background:linear-gradient(135deg,#f97316,#4f46e5,#059669,#7c3aed,#f97316);background-size:300% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:greetShine 4s ease infinite;}
+@keyframes tbPulse2{0%,100%{opacity:1;transform:translateY(0);}33%{transform:translateY(-2px);}66%{transform:translateY(0);}}
+@keyframes tbPulse3{0%,100%{opacity:1;transform:translateY(0);}33%{transform:translateY(-2px);}66%{transform:translateY(0);}}
+@keyframes tbUnderline{0%{background-position:0% 50%;opacity:.7;}50%{background-position:100% 50%;opacity:1;}100%{background-position:0% 50%;opacity:.7;}}
+@keyframes quoteFade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+@media(max-width:500px){.tb-anim-title{font-size:12px;}}
+.tb-r{display:flex;align-items:center;gap:10px;}
+@keyframes sigPulse{0%,100%{transform:scale(1);opacity:.35;}50%{transform:scale(2.2);opacity:0;}}
+.tb-date{font-size:11px;color:var(--tx3);font-weight:600;background:var(--bg2);padding:5px 12px;border-radius:20px;}
+.on-badge{display:flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;background:var(--gl);color:var(--g);}
+.nb-btn{position:relative;background:var(--bg2);border:none;width:38px;height:38px;border-radius:10px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:var(--tr);}
+.nb-btn:hover{background:var(--pl);}
+.nb-dot2{position:absolute;top:4px;right:4px;background:var(--r);color:#fff;border-radius:8px;min-width:16px;height:16px;font-size:9px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 4px;}
+.nb-dot2.on{display:flex;}
+.tb-av{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;cursor:pointer;border:2px solid var(--bd);transition:var(--tr);overflow:hidden;}
+.tb-av:hover{border-color:var(--p);}
+.tb-av img{width:100%;height:100%;object-fit:cover;}
+
+/* PAGE CONTENT */
+.pc{padding:22px 26px;flex:1;}
+.ps{display:none;}
+.ps.on{display:block;animation:fi .2s ease;}
+@keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;}
+.ph-h{font-size:22px;font-weight:900;color:var(--dk);letter-spacing:-.4px;}
+.ph-s{font-size:12px;color:var(--tx3);margin-top:2px;}
+
+/* STAT CARDS */
+.sg{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:16px;}
+.sc{background:#fff;border-radius:var(--rad);padding:14px 12px;border:1px solid var(--bd);box-shadow:var(--sh);position:relative;overflow:hidden;cursor:pointer;transition:var(--tr);}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--shm);}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+.sc.c-o::after{background:linear-gradient(90deg,#ea580c,#f97316);}
+.sc.c-b::after{background:linear-gradient(90deg,#4f46e5,#818cf8);}
+.sc.c-r::after{background:linear-gradient(90deg,#dc2626,#ef4444);}
+.sc.c-g::after{background:linear-gradient(90deg,#059669,#34d399);}
+.sc.c-pu::after{background:linear-gradient(90deg,#7c3aed,#a78bfa);}
+.sc.c-gold::after{background:linear-gradient(90deg,#f59e0b,#fbbf24);}
+.sc.c-gold .sc-ico{background:#fffbeb;}
+.sc-ico{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;margin-bottom:10px;}
+.sc.c-o .sc-ico{background:#fff7ed;}
+.sc.c-b .sc-ico{background:var(--pl);}
+.sc.c-r .sc-ico{background:var(--rl);}
+.sc.c-g .sc-ico{background:var(--gl);}
+.sc.c-pu .sc-ico{background:var(--pul);}
+.sc-v{font-size:26px;font-weight:900;color:var(--dk);line-height:1;letter-spacing:-1px;}
+.sc-l{font-size:10px;color:var(--tx3);margin-top:5px;font-weight:600;letter-spacing:.3px;}
+
+/* CALENDAR SECTION */
+.cal-wrap{background:#fff;border-radius:var(--rad);border:2px solid var(--pm);box-shadow:var(--shm);overflow:hidden;margin-bottom:16px;}
+.cal-hdr{padding:10px 16px;border-bottom:1px solid var(--bd);background:linear-gradient(135deg,var(--pl),#f0f4ff);display:flex;align-items:center;justify-content:space-between;}
+.cal-title{font-size:13px;font-weight:800;color:var(--dk);}
+.cal-nav{display:flex;align-items:center;gap:8px;}
+.cal-nav button{background:var(--bg2);border:1px solid var(--bd);border-radius:6px;padding:3px 10px;cursor:pointer;font-size:13px;font-weight:700;color:var(--tx2);transition:var(--tr);}
+.cal-nav button:hover{background:var(--pl);color:var(--p);border-color:var(--pm);}
+.cal-month{font-size:13px;font-weight:800;color:var(--p);}
+.cal-body{padding:10px 14px;}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.cal-day-hdr{text-align:center;font-size:9px;font-weight:800;color:var(--tx3);padding:3px 0;letter-spacing:.5px;text-transform:uppercase;}
+.cal-day{text-align:center;padding:4px 2px;border-radius:7px;cursor:pointer;transition:var(--tr);min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.cal-day:hover:not(.cal-today){background:var(--bg2);}
+.cal-day.cal-today{background:var(--grad);color:#fff;}
+.cal-day.cal-has-leads{background:var(--pl);border:1px solid var(--pm);}
+.cal-day.cal-today.cal-has-leads{background:var(--grad);}
+.cal-day-num{font-size:11px;font-weight:600;color:var(--tx);}
+.cal-day.cal-today .cal-day-num{color:#fff;font-weight:800;}
+.cal-day.cal-has-leads .cal-day-num{color:var(--p);font-weight:800;}
+.cal-day.cal-today.cal-has-leads .cal-day-num{color:#fff;}
+.cal-badge{background:var(--p);color:#fff;border-radius:6px;font-size:8px;font-weight:800;min-width:15px;height:15px;display:flex;align-items:center;justify-content:center;padding:0 3px;}
+.cal-day.cal-today .cal-badge{background:rgba(255,255,255,.25);color:#fff;}
+
+/* LEADS PANEL */
+.leads-panel{background:#fff;border-radius:var(--rad);border:2px solid var(--p);box-shadow:var(--shm);overflow:hidden;margin-bottom:20px;display:none;}
+.leads-panel-hdr{padding:14px 20px;border-bottom:1px solid var(--bd);background:var(--pl);display:flex;align-items:center;justify-content:space-between;}
+.leads-panel-title{font-size:14px;font-weight:800;color:var(--p);}
+.leads-panel-body{padding:16px;max-height:360px;overflow-y:auto;}
+
+/* TABLE WRAPPER */
+.tw{background:#fff;border-radius:var(--rad);border:1px solid var(--bd);overflow:hidden;box-shadow:var(--sh);}
+.tt{padding:14px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;border-bottom:1px solid var(--bd);background:#fafbff;}
+.sb2{position:relative;display:flex;align-items:center;}
+.sb2 input{padding:9px 13px 9px 36px;border:1.5px solid var(--bd);border-radius:var(--rad3);font-size:13px;width:220px;outline:none;font-family:inherit;background:#fff;}
+.sb2 input:focus{border-color:var(--p);box-shadow:0 0 0 3px rgba(79,70,229,.08);}
+.sb2-ic{position:absolute;left:11px;color:var(--tx3);font-size:13px;pointer-events:none;}
+.fsel{padding:9px 11px;border:1.5px solid var(--bd);border-radius:var(--rad3);font-size:13px;outline:none;background:#fff;color:var(--tx);font-family:inherit;cursor:pointer;}
+.fsel:focus{border-color:var(--p);}
+.btn{padding:9px 18px;border-radius:var(--rad3);font-size:13px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:7px;border:none;font-family:inherit;transition:var(--tr);white-space:nowrap;}
+.btn-p{background:var(--grad);color:#fff;}
+.btn-p:hover{box-shadow:0 4px 16px rgba(79,70,229,.4);transform:translateY(-1px);}
+.btn-g{background:linear-gradient(135deg,#059669,#10b981);color:#fff;}
+.btn-g:hover{box-shadow:0 4px 16px rgba(5,150,105,.4);}
+.btn-o2{background:#fff;color:var(--p);border:1.5px solid var(--p);}
+.btn-o2:hover{background:var(--pl);}
+.btn-gh{background:var(--bg2);color:var(--tx2);border:1px solid var(--bd);}
+.btn-gh:hover{background:var(--bd);}
+.btn-wa{background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;}
+.btn-wa:hover{box-shadow:0 4px 16px rgba(37,211,102,.4);}
+.btn-r{background:linear-gradient(135deg,#dc2626,#ef4444);color:#fff;}
+.btn-sm{padding:6px 13px;font-size:12px;}
+.lc{padding:10px 18px;font-size:12px;font-weight:700;color:var(--tx2);background:#fafbff;border-bottom:1px solid var(--bd);}
+
+/* TABLE */
+table{width:100%;border-collapse:collapse;}
+thead th{background:var(--grad2);color:rgba(255,255,255,.75);padding:11px 15px;text-align:left;font-size:10px;font-weight:700;white-space:nowrap;text-transform:uppercase;letter-spacing:.8px;}
+tbody tr{border-bottom:1px solid var(--bd);}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:#f8faff;}
+tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
+.ln{color:var(--p);cursor:pointer;font-weight:700;}
+.ln:hover{text-decoration:underline;}
+.stag{display:inline-block;padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;}
+.t-mb{background:#fff7ed;color:#c2410c;border:1px solid #fed7aa;}
+.t-99{background:#fef2f2;color:#dc2626;border:1px solid #fecaca;}
+.t-jd{background:var(--pl);color:var(--p);border:1px solid var(--pm);}
+.t-ref{background:var(--gl);color:#059669;border:1px solid #a7f3d0;}
+.t-walk{background:var(--pul);color:#7c3aed;border:1px solid #ddd6fe;}
+.t-housing{background:#fef3c7;color:#92400e;border:1px solid #fde68a;}
+.sp{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.sp::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.s-new{background:#eef2ff;color:#4338ca;}.s-new::before{background:#4f46e5;}
+.s-active{background:#ecfdf5;color:#065f46;}.s-active::before{background:#059669;}
+.s-warm{background:#fff7ed;color:#c2410c;}.s-warm::before{background:#ea580c;}
+.s-follow-up{background:#fdf4ff;color:#86198f;}.s-follow-up::before{background:#d946ef;}
+.s-site-visit{background:#fffbeb;color:#92400e;}.s-site-visit::before{background:#f59e0b;}
+.s-negotiation{background:#f5f3ff;color:#5b21b6;}.s-negotiation::before{background:#7c3aed;}
+.s-closed{background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;}.s-closed::before{background:#059669;}
+.s-lost{background:#fef2f2;color:#991b1b;}.s-lost::before{background:#dc2626;}
+.s-booking-done{background:#fffbeb;color:#92400e;border:1px solid #fcd34d;}.s-booking-done::before{background:#f59e0b;}
+.ia{background:none;border:none;cursor:pointer;padding:5px 7px;border-radius:7px;font-size:15px;transition:var(--tr);}
+.ia:hover{background:var(--bg2);}
+
+/* MODALS */
+.ov{display:none;position:fixed;inset:0;background:rgba(10,15,30,.65);z-index:700;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(6px);}
+.ov.on{display:flex;}
+.mo{background:#fff;border-radius:20px;width:100%;max-width:600px;max-height:92vh;overflow-y:auto;box-shadow:var(--shl);}
+.mh{display:flex;align-items:center;justify-content:space-between;padding:20px 24px;border-bottom:1px solid var(--bd);position:sticky;top:0;background:#fff;z-index:10;border-radius:20px 20px 0 0;}
+.mh-l{display:flex;align-items:center;gap:12px;}
+.mh-ic{width:40px;height:40px;border-radius:11px;background:var(--pl);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.mh h3{font-size:16px;font-weight:800;color:var(--dk);}
+.mh p{font-size:11px;color:var(--tx3);margin-top:2px;}
+.mx{background:var(--bg2);border:none;color:var(--tx2);font-size:15px;cursor:pointer;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:var(--tr);}
+.mx:hover{background:var(--rl);color:var(--r);}
+.mb{padding:24px;}
+.mf{display:flex;gap:9px;justify-content:flex-end;padding:16px 24px;border-top:1px solid var(--bd);background:#fafbff;border-radius:0 0 20px 20px;position:sticky;bottom:0;}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:15px;}
+.fr{margin-bottom:15px;}
+.fr label{display:block;font-size:11px;color:var(--tx2);font-weight:700;margin-bottom:6px;letter-spacing:.3px;}
+.fr input,.fr select,.fr textarea{width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:var(--rad3);font-size:13px;outline:none;font-family:inherit;background:#fafbfc;color:var(--tx);transition:var(--tr);}
+.fr input:focus,.fr select:focus,.fr textarea:focus{border-color:var(--p);background:#fff;box-shadow:0 0 0 3px rgba(79,70,229,.08);}
+.req{color:var(--r);}
+.fs-h{font-size:10px;font-weight:800;color:var(--tx3);text-transform:uppercase;letter-spacing:1.5px;margin:20px 0 13px;padding-bottom:8px;border-bottom:1px solid var(--bd);}
+.clog{border:1.5px solid var(--bd);border-radius:10px;padding:12px;background:var(--bg);max-height:180px;overflow-y:auto;margin-bottom:10px;}
+.ce{padding:8px 0;border-bottom:1px solid var(--bd);}
+.ce:last-child{border:none;}
+.ce-by{font-weight:800;color:var(--p);font-size:12px;}
+.ce-dt{color:var(--tx3);font-size:10px;margin-left:6px;}
+.ce-t{font-size:12px;color:var(--tx2);margin-top:3px;line-height:1.6;}
+.malert{font-size:12px;padding:10px 13px;border-radius:9px;margin-top:9px;font-weight:500;display:none;}
+.malert.ok{background:var(--gl);color:#065f46;}
+.malert.err{background:var(--rl);color:#991b1b;}
+
+/* FOLLOW-UP CARDS */
+.fuh{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;margin:18px 0 10px;display:flex;align-items:center;gap:8px;}
+.fuc{background:#fff;border-radius:var(--rad);border:1px solid var(--bd);padding:15px 18px;margin-bottom:9px;display:flex;align-items:center;gap:16px;box-shadow:var(--sh);transition:var(--tr);}
+.fuc:hover{box-shadow:var(--shm);transform:translateX(2px);}
+.fu-d{border-radius:10px;padding:10px 14px;text-align:center;min-width:58px;flex-shrink:0;}
+.fu-day{font-size:22px;font-weight:900;line-height:1;}
+.fu-mon{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1px;}
+.fu-time{font-size:10px;font-weight:700;margin-top:6px;padding:2px 8px;border-radius:5px;}
+.fu-bd{flex:1;min-width:0;}
+.fu-nm{font-size:14px;font-weight:800;color:var(--dk);}
+.fu-mt{font-size:12px;color:var(--tx3);margin-top:2px;}
+.ubadge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:800;margin-left:8px;}
+.fu-btns{display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+
+/* TEAM */
+.tg{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:18px;}
+.tc{background:#fff;border-radius:var(--rad);border:1px solid var(--bd);padding:26px 20px;text-align:center;box-shadow:var(--sh);transition:var(--tr);}
+.tc:hover{box-shadow:var(--shm);transform:translateY(-2px);}
+.tc-av{width:68px;height:68px;border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;margin:0 auto 14px;overflow:hidden;}
+.tc-av img{width:100%;height:100%;object-fit:cover;}
+.tc-nm{font-size:16px;font-weight:800;color:var(--dk);}
+.tc-role{font-size:12px;color:var(--tx3);margin-bottom:14px;}
+.tc-div{border:none;border-top:1px solid var(--bd);margin:12px 0;}
+.tc-s{display:flex;justify-content:space-between;font-size:13px;color:var(--tx2);padding:4px 0;}
+.tc-sv{font-weight:800;color:var(--dk);}
+.admbdg{display:inline-block;padding:3px 12px;background:var(--grad);color:#fff;border-radius:20px;font-size:10px;font-weight:800;}
+
+/* TABS */
+.tabs{display:flex;border-bottom:2px solid var(--bd);margin-bottom:20px;}
+.tab{padding:10px 20px;font-size:13px;font-weight:700;color:var(--tx3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:var(--tr);}
+.tab.on{color:var(--p);border-bottom-color:var(--p);}
+.at{width:100%;border-collapse:collapse;font-size:13px;}
+.at th{background:var(--bg2);color:var(--tx2);padding:10px 15px;text-align:left;font-weight:800;font-size:10px;text-transform:uppercase;letter-spacing:.8px;}
+.at td{padding:12px 15px;border-bottom:1px solid var(--bd);}
+.at tr:last-child td{border:none;}
+.at tr:hover td{background:#f8faff;}
+
+/* INFO CARDS */
+.ic{background:#fff;border-radius:var(--rad);border:1px solid var(--bd);padding:22px;margin-bottom:16px;box-shadow:var(--sh);}
+.ic h4{font-size:15px;font-weight:800;color:var(--dk);margin-bottom:8px;}
+.ic p{font-size:13px;color:var(--tx2);margin-bottom:14px;line-height:1.7;}
+.ic-g{border-color:var(--g);background:linear-gradient(135deg,#ecfdf5,#d1fae5);}
+.ic-g h4{color:#065f46;}
+.rg{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px;margin-bottom:22px;}
+.rc{background:#fff;border-radius:var(--rad);border:1px solid var(--bd);padding:22px;box-shadow:var(--sh);}
+.rc h4{font-size:13px;font-weight:800;color:var(--dk);margin-bottom:16px;}
+.br{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.br-l{font-size:12px;color:var(--tx2);min-width:90px;font-weight:600;}
+.br-t{flex:1;height:8px;background:var(--bg2);border-radius:4px;overflow:hidden;}
+.br-f{height:100%;border-radius:4px;transition:width .6s ease;}
+.br-v{font-size:12px;font-weight:800;color:var(--dk);min-width:26px;text-align:right;}
+.fs2{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd);}
+.fs2:last-child{border:none;}
+.fs2-ic{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.fs2-l{font-size:13px;font-weight:700;color:var(--dk);}
+.fs2-s{font-size:11px;color:var(--tx3);}
+.fs2-c{margin-left:auto;font-size:22px;font-weight:900;color:var(--dk);}
+
+/* IMAGE */
+.imgprev{width:100%;max-height:180px;object-fit:contain;border-radius:10px;border:1.5px solid var(--bd);margin-top:9px;display:none;background:var(--bg2);}
+.imgprev.on{display:block;}
+.thumb{width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--bd);vertical-align:middle;}
+
+/* VIEW ROW */
+.vrow{display:flex;justify-content:space-between;padding:9px 0;border-bottom:1px solid var(--bd);font-size:13px;}
+.vrow:last-child{border:none;}
+.vrow span:first-child{color:var(--tx3);font-weight:700;}
+.vrow span:last-child{color:var(--tx);font-weight:600;text-align:right;}
+
+/* PROPERTY PAGE */
+.prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+.prop-card{background:#fff;border-radius:var(--rad);border:1px solid var(--bd);overflow:hidden;box-shadow:var(--sh);transition:var(--tr);}
+.prop-card:hover{box-shadow:var(--shm);transform:translateY(-3px);}
+.prop-img{width:100%;height:160px;object-fit:cover;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:40px;}
+.prop-body{padding:14px 16px;}
+.prop-nm{font-size:14px;font-weight:800;color:var(--dk);}
+.prop-meta{font-size:11px;color:var(--tx3);margin-top:4px;}
+.prop-actions{padding:10px 16px;border-top:1px solid var(--bd);display:flex;gap:8px;}
+
+/* WA PAGE */
+.wa-tpl{background:#fff;border-radius:var(--rad);border:1px solid var(--bd);padding:18px;margin-bottom:14px;box-shadow:var(--sh);cursor:pointer;transition:var(--tr);}
+.wa-tpl:hover{border-color:var(--p);background:var(--pl);}
+.wa-tpl.sel{border-color:var(--p);background:var(--pl);box-shadow:0 0 0 3px rgba(79,70,229,.1);}
+.wa-tpl-h{font-size:13px;font-weight:800;color:var(--dk);margin-bottom:6px;}
+.wa-tpl-p{font-size:12px;color:var(--tx2);line-height:1.6;}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sb{width:272px;transform:translateX(-100%);}
+  .sb.on{transform:translateX(0);}
+  .main{margin-left:0;}
+  .hbg{display:flex;}
+  .fg{grid-template-columns:1fr;}
+  .sg{grid-template-columns:repeat(2,1fr);}
+  .pc{padding:14px 16px;}
+  .tb{padding:0 16px;}
+  .sb2 input{width:100%;}
+  .tt{flex-direction:column;align-items:stretch;}
+  .sb2,.fsel{width:100%;}
+  .tb-date{display:none;}
+  table{font-size:12px;}
+  thead th,tbody td{padding:9px 11px;}
+  .mo{max-width:100%;border-radius:18px;}
+  .fuc{flex-direction:column;align-items:flex-start;}
+  .fu-btns{flex-direction:row;}
+  .tg{grid-template-columns:repeat(2,1fr);}
+  #login{flex-direction:column;}
+  .ll{padding:28px 20px;flex:none;}
+  .lr{width:100%;padding:28px 20px 40px;}
+  .sg{grid-template-columns:repeat(2,1fr);}
+}
+@media(min-width:769px){.sb{transform:translateX(0)!important;}}
+</style>
+</head>
+<body>
+<div id="ld">
+  <div class="ld-logo">🏠</div>
+  <div class="ld-ring"></div>
+  <div class="ld-txt">Jay Dwarkadhish CRM</div>
+  <div class="ld-sub" id="ld-sub-txt">Starting up...</div>
+  <div class="ld-bar-wrap"><div class="ld-bar" id="ld-bar"></div></div>
+  <button class="ld-retry" id="ld-retry" onclick="location.reload()">↺ Reload Page</button>
+</div>
+<div id="nb"><div class="nb-dot"></div><span id="nb-txt">⏰ Follow-up alert!</span><button class="nb-x" onclick="closeNB()">✕</button></div>
+<div id="sy">☁️ Synced</div>
+
+<div id="login">
+  <!-- Signal indicator — top-right corner, no text -->
+  <div style="position:fixed;top:14px;right:18px;z-index:9999;display:flex;align-items:center;gap:5px;">
+    <div style="position:relative;width:14px;height:14px;">
+      <div style="position:absolute;inset:0;border-radius:50%;background:#22c55e;opacity:.35;animation:sigPulse 2s ease-in-out infinite;"></div>
+      <div style="position:absolute;inset:3px;border-radius:50%;background:#22c55e;"></div>
+    </div>
+  </div>
+  <style>@keyframes sigPulse{0%,100%{transform:scale(1);opacity:.35;}50%{transform:scale(2.2);opacity:0;}}</style>
+  <div class="ll">
+    <div style="-webkit-user-select:none;user-select:none;pointer-events:none;"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/04/JD-logo-01-white.png" class="ll-logo" onerror="this.style.display='none'" alt="" draggable="false" loading="lazy"></div>
+    <div class="ll-h">Jay <span>Dwarkadhish</span><br>Real Estate</div>
+    <div class="ll-sub">Ahmedabad's most trusted real estate brand</div>
+    <div class="ll-addr">📍 A 212, West Face, Hebatpur Road, Thaltej<br>Ahmedabad — 380059<br>📞 +91 9998492878</div>
+    <div class="ll-stats">
+      <div><div class="ls-v">10+</div><div class="ls-l">Years</div></div>
+      <div><div class="ls-v">500+</div><div class="ls-l">Properties</div></div>
+      <div><div class="ls-v">1000+</div><div class="ls-l">Clients</div></div>
+    </div>
+  </div>
+  <div class="lr">
+    <div class="lr-box">
+      <div style="-webkit-user-select:none;user-select:none;pointer-events:none;margin-bottom:16px;margin-top:30px;"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" class="lr-logo" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate" draggable="false" loading="eager" style="margin-top:0"></div>
+      <div class="lr-h">Welcome back 👋</div>
+      <div class="lr-sub" style="margin-bottom:28px;">Sign in to your CRM account</div>
+      <label class="li-lbl">Email Address</label>
+      <input type="email" id="li-em" class="li-in" placeholder="your@email.com" autocomplete="off" data-form-type="other" spellcheck="false" autocorrect="off" autocapitalize="none">
+      <label class="li-lbl">Password</label>
+      <input type="password" id="li-pw" class="li-in" placeholder="••••••••" autocomplete="new-password" data-form-type="other">
+      <div class="li-err" id="li-err">❌ Invalid email or password.</div>
+      <button class="li-btn" id="li-btn" onclick="doLogin()">Sign In →</button>
+    </div>
+  </div>
+</div>
+
+<div id="app">
+<div class="layout">
+  <div class="sb-ov" id="sb-ov" onclick="closeSB()"></div>
+  <div class="sb" id="sb">
+    <div class="sb-head"><div class="sb-brand" style="gap:0"><div class="sb-logo-wrap" style="width:100%;padding:0;display:flex;justify-content:center;line-height:0"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" style="width:100%;max-width:230px;max-height:130px;object-fit:contain;filter:brightness(1.05);display:block" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate"></div></div></div>
+    <div class="sb-user"><div class="sb-u" onclick="openProfile()"><div class="sb-av" id="sb-av"></div><div><div class="sb-un" id="sb-un">—</div><div class="sb-ur" id="sb-ur">—</div></div></div></div>
+    <nav>
+      <div class="nav-sec">Main</div>
+      <div class="ni on" id="ni-dashboard" onclick="pg('dashboard',this)"><div class="ni-icon">📊</div><span>Dashboard</span></div>
+      <div class="ni" id="ni-enquiries" onclick="pg('enquiries',this)"><div class="ni-icon">📋</div><span>Enquiries</span></div>
+      <div class="ni" id="ni-followups" onclick="pg('followups',this)"><div class="ni-icon">🔔</div><span>Follow-ups</span><span class="ni-badge" id="fu-nb" style="display:none">0</span></div>
+      <div class="nav-sec">Tools</div>
+      <div class="ni" id="ni-properties" onclick="pg('properties',this)"><div class="ni-icon">🏠</div><span>Properties</span></div>
+      <div class="ni" id="ni-whatsapp" onclick="pg('whatsapp',this)"><div class="ni-icon">💬</div><span>WhatsApp</span></div>
+      <div class="nav-sec">Reports</div>
+      <div class="ni" id="ni-reports" onclick="pg('reports',this)"><div class="ni-icon">📈</div><span>Reports</span></div>
+      <div class="nav-sec">Settings</div>
+      <div class="ni" id="ni-team" onclick="pg('team',this)"><div class="ni-icon">👥</div><span>Team</span></div>
+      <div class="ni" id="ni-admin" onclick="pg('admin',this)" style="display:none"><div class="ni-icon">⚙️</div><span>Admin</span></div>
+    </nav>
+    <div class="sb-foot" style="display:none"></div>
+  </div>
+  <div class="main">
+    <div class="tb" style="position:relative;">
+      <div class="tb-l">
+        <button class="hbg" onclick="toggleSB()"><span></span><span></span><span></span></button>
+        <!-- LEFT - Hello greeting + motivational quote -->
+        <div style="display:flex;flex-direction:column;justify-content:center;gap:5px;">
+          <div style="display:flex;align-items:center;gap:5px;">
+            <span style="font-size:17px;">👋</span>
+            <div id="tb-greeting" class="tb-greeting-anim"></div>
+          </div>
+          <div id="tb-quote" style="font-size:13px;color:#0a0f1e;font-weight:600;max-width:400px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;animation:quoteFade 1s ease-in-out;"></div>
+        </div>
+      </div>
+      <div class="tb-r">
+        <span class="tb-date" id="tb-date"></span>
+        <!-- Live indicator dot (replaces ☁️ Online badge) -->
+        <div style="position:relative;width:10px;height:10px;flex-shrink:0;" title="Online">
+          <div style="position:absolute;inset:0;border-radius:50%;background:#22c55e;opacity:.35;animation:sigPulse 2s ease-in-out infinite;"></div>
+          <div style="position:absolute;inset:2px;border-radius:50%;background:#22c55e;"></div>
+        </div>
+        <!-- Mini Calendar in topbar (box marked 1) -->
+        <div id="cal-mini-box" onclick="openCalModal()" style="background:#fff;border:1.5px solid var(--pm);border-radius:10px;padding:6px 12px;cursor:pointer;transition:var(--tr);box-shadow:var(--sh);user-select:none;display:flex;align-items:center;gap:8px;height:38px;" onmouseenter="this.style.boxShadow='var(--shm)';this.style.borderColor='var(--p)'" onmouseleave="this.style.boxShadow='var(--sh)';this.style.borderColor='var(--pm)'">
+          <span style="font-size:15px;flex-shrink:0">📅</span>
+          <div style="display:flex;flex-direction:column;justify-content:center;line-height:1.3;">
+            <div style="font-size:11px;font-weight:800;color:var(--dk)" id="cal-mini-month"></div>
+            <div style="font-size:9px;color:var(--p);font-weight:700" id="cal-mini-info">— follow-ups</div>
+          </div>
+          <div id="cal-mini-grid" style="display:none;"></div>
+        </div>
+        <button class="nb-btn" onclick="pg('followups',document.getElementById('ni-followups'))">🔔<span class="nb-dot2" id="nb-dot2">0</span></button>
+        <div class="tb-av" id="tb-av" onclick="openProfile()"></div>
+      </div>
+    </div>
+    <div class="pc">
+
+      <!-- DASHBOARD -->
+      <div id="ps-dashboard" class="ps on">
+        <div class="ph"><div><div class="ph-h">Dashboard</div><div class="ph-s" id="dash-date-sub"></div></div></div>
+        <div class="sg" id="d-stats"></div>
+
+        <!-- FULL CALENDAR MODAL -->
+        <div id="cal-modal-ov" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:600;align-items:center;justify-content:center;">
+          <div style="background:#fff;border-radius:var(--rad);width:min(680px,95vw);max-height:90vh;overflow:hidden;box-shadow:var(--shl);display:flex;flex-direction:column;">
+            <div style="padding:16px 20px;border-bottom:1px solid var(--bd);background:linear-gradient(135deg,var(--pl),#f0f4ff);display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px">
+                <span style="font-size:18px">📅</span>
+                <div class="cal-title">Calendar View</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px">
+                <div class="cal-nav">
+                  <button onclick="calPrev()">‹</button>
+                  <span class="cal-month" id="cal-month-label" style="min-width:120px;text-align:center"></span>
+                  <button onclick="calNext()">›</button>
+                </div>
+                <button onclick="closeCalModal()" style="background:var(--bg2);border:none;width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:16px;font-weight:700;color:var(--tx2)">✕</button>
+              </div>
+            </div>
+            <div style="overflow-y:auto;flex:1;">
+              <div class="cal-body" id="d-calendar" style="padding:16px 20px;"></div>
+              <div id="cal-leads-panel" style="display:none;margin:0 20px 20px;background:#fff;border-radius:var(--rad);border:2px solid var(--p);box-shadow:var(--shm);overflow:hidden;">
+                <div style="padding:12px 16px;border-bottom:1px solid var(--bd);background:var(--pl);display:flex;align-items:center;justify-content:space-between;">
+                  <div style="font-size:13px;font-weight:800;color:var(--p)" id="cal-panel-title">Leads</div>
+                  <button onclick="document.getElementById('cal-leads-panel').style.display='none'" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--p)">✕</button>
+                </div>
+                <div style="padding:16px;max-height:280px;overflow-y:auto" id="cal-leads-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- INQUIRIES TABLE -->
+        <div style="margin-top:16px;">
+          <div style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--dk)">📋 Inquiries</div>
+          <div class="tw">
+            <div style="overflow-x:auto"><table><thead><tr><th>Client</th><th>Mobile</th><th>Source</th><th>Status</th><th>Agent</th><th>Next Follow-up</th><th>Actions</th></tr></thead><tbody id="d-inq-body"></tbody></table></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ENQUIRIES -->
+      <div id="ps-enquiries" class="ps">
+        <div class="ph"><div><div class="ph-h">Enquiries</div><div class="ph-s">All client leads</div></div><button class="btn btn-p" onclick="openNewEnq()">+ New Enquiry</button></div>
+        <div class="tw">
+          <div class="tt">
+            <div class="sb2"><span class="sb2-ic">🔍</span><input type="text" placeholder="Search name, phone..." id="eq-s" oninput="debouncedRenderEnq()"></div>
+            <select class="fsel" id="eq-st" onchange="renderEnq()"><option value="">All Statuses</option><option>New</option><option>Active</option><option>Warm</option><option>Follow Up</option><option>Site Visit</option><option>Call Not Picked</option><option>Booking Done</option><option>Closed</option><option>Lost</option></select>
+            <select class="fsel" id="eq-src" onchange="renderEnq()"><option value="">All Sources</option><option>Magicbricks</option><option>99acres</option><option>Housing</option><option>JD Website</option><option>Reference</option><option>Walk-in</option></select>
+            <select class="fsel" id="eq-ag" onchange="renderEnq()"><option value="">All Agents</option></select>
+          </div>
+          <div class="lc" id="eq-cnt">Loading...</div>
+          <div style="overflow-x:auto"><table><thead><tr><th>Client</th><th>Mobile</th><th>BHK/Budget</th><th>Agent</th><th>Status</th><th>Score</th><th>Next Follow-up</th><th>Last Note</th><th>Actions</th></tr></thead><tbody id="eq-body"></tbody></table></div>
+        </div>
+      </div>
+
+      <!-- FOLLOW-UPS -->
+      <div id="ps-followups" class="ps">
+        <div class="ph"><div><div class="ph-h">Follow-ups</div><div class="ph-s">Scheduled follow-up tracker</div></div></div>
+        <div id="fu-content"></div>
+      </div>
+
+      <!-- PROPERTIES -->
+      <div id="ps-properties" class="ps">
+        <div class="ph"><div><div class="ph-h">Properties</div><div class="ph-s">Upload & manage property photos</div></div><button class="btn btn-p" onclick="openNewProp()">+ Upload Property</button></div>
+        <div id="prop-content">
+          <div class="tw" style="margin-bottom:18px">
+            <div class="tt">
+              <div class="sb2"><span class="sb2-ic">🔍</span><input type="text" placeholder="Search property..." id="prop-s" oninput="renderProps()"></div>
+              <select class="fsel" id="prop-bhk" onchange="renderProps()"><option value="">All BHK</option><option>1 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4 BHK</option><option>Commercial</option><option>Plot</option></select>
+            </div>
+          </div>
+          <div class="prop-grid" id="prop-grid"></div>
+        </div>
+      </div>
+
+      <!-- WHATSAPP -->
+      <div id="ps-whatsapp" class="ps">
+        <div class="ph"><div><div class="ph-h">WhatsApp</div><div class="ph-s">Send reminders & greetings to clients</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--dk);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">📋 Select Template</div>
+            <div id="wa-templates"></div>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:var(--dk);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">👥 Select Leads</div>
+            <div class="tw">
+              <div class="tt" style="padding:10px 14px">
+                <div class="sb2"><span class="sb2-ic">🔍</span><input type="text" placeholder="Search..." id="wa-s" oninput="debouncedWALeads()"></div>
+                <select class="fsel" id="wa-st" onchange="renderWALeads()"><option value="">All Status</option><option>New</option><option>Active</option><option>Warm</option><option>Follow Up</option><option>Site Visit</option><option>Call Not Picked</option></select>
+              </div>
+              <div style="max-height:380px;overflow-y:auto" id="wa-lead-list"></div>
+            </div>
+            <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn btn-wa" onclick="sendWABulk()">💬 Send to Selected</button>
+              <button class="btn btn-gh" onclick="selectAllWA()">☑ Select All</button>
+              <span id="wa-sel-count" style="font-size:12px;color:var(--tx3);align-self:center"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REPORTS -->
+      <div id="ps-reports" class="ps">
+        <div class="ph"><div><div class="ph-h">Reports</div></div><button class="btn btn-o2" onclick="exportExcel()">⬇️ Export Excel</button></div>
+        <div class="sg" id="rep-stats"></div>
+        <div class="rg" id="rep-charts"></div>
+        <div style="font-size:14px;font-weight:800;margin-bottom:12px;color:var(--dk)">👥 Agent Performance</div>
+        <div class="tw"><div style="overflow-x:auto"><table><thead><tr><th>Agent</th><th>Total</th><th>Active</th><th>Closed</th><th>Lost</th><th>Conv%</th></tr></thead><tbody id="ap-body"></tbody></table></div></div>
+      </div>
+
+      <!-- TEAM -->
+      <div id="ps-team" class="ps">
+        <div class="ph"><div><div class="ph-h">Team</div></div></div>
+        <div class="tg" id="team-grid"></div>
+      </div>
+
+      <!-- ADMIN -->
+      <div id="ps-admin" class="ps">
+        <div class="ph"><div><div class="ph-h">Admin</div></div></div>
+        <div class="tabs">
+          <div class="tab on" onclick="admTab('members',this)">👥 Team Members</div>
+          <div class="tab" onclick="admTab('backup',this)">💾 Backup & Export</div>
+        </div>
+        <div id="adm-members">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+            <div style="font-size:14px;font-weight:800">All Members</div>
+            <button class="btn btn-p" onclick="openAddMember()">+ Add Member</button>
+          </div>
+          <div class="tw"><table class="at"><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Access</th><th>Actions</th></tr></thead><tbody id="mem-body"></tbody></table></div>
+        </div>
+        <div id="adm-backup" style="display:none">
+          <div class="ic ic-g"><h4>☁️ Cloud Sync Active</h4><p>Data Supabase cloud pe save ho raha hai. PC + Mobile dono pe same data dikhega.</p><div style="display:flex;align-items:center;gap:7px;font-size:13px;font-weight:700;color:#065f46"><span style="width:8px;height:8px;border-radius:50%;background:#059669;display:inline-block"></span>Live sync active ✅</div></div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px">
+            <div class="ic"><h4>📥 Export Excel</h4><p>All leads Excel mein download karo.</p><button class="btn btn-p" onclick="exportExcel()">⬇️ Download Excel</button></div>
+            <div class="ic"><h4>📤 Export CSV</h4><p>CSV format mein download.</p><button class="btn btn-o2" onclick="exportCSV()">⬇️ Download CSV</button></div>
+            <div class="ic"><h4>☁️ Google Drive Backup</h4><p>Excel file seedha Google Drive pe upload hogi (Gmail account se).</p><div style="margin-top:8px"><div style="font-size:11px;color:var(--tx3);margin-bottom:6px">Backup Gmail ID:</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="email" id="gdrive-email" placeholder="yourname@gmail.com" style="flex:1;min-width:160px;padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;font-family:inherit;outline:none" onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--bd)'"><button class="btn btn-sm" style="background:#fff;border:1.5px solid var(--bd);color:var(--tx2);font-size:11px" onclick="saveGDriveEmail()">💾 Save</button></div><div id="gdrive-saved-email" style="font-size:11px;color:var(--g);margin-top:4px;font-weight:600"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn btn-g btn-sm" onclick="gDriveBackup()">☁️ Backup to Drive</button><button class="btn btn-p btn-sm" onclick="window.open('https://drive.google.com','_blank')">📁 Open Drive</button></div><div id="gdrive-status" style="font-size:12px;margin-top:8px;font-weight:600"></div></div>
+
+            <!-- SUPABASE STORAGE BACKUP -->
+            <div class="ic">
+              <h4>🗄️ Supabase Storage Backup</h4>
+              <p>Excel file Supabase cloud storage mein save hogi — unlimited & free.</p>
+              <button class="btn btn-p" onclick="supabaseBackup()" style="margin-top:10px">🗄️ Backup to Supabase</button>
+              <div id="sb-backup-status" style="font-size:12px;margin-top:8px;font-weight:600"></div>
+              <div id="sb-backup-links" style="margin-top:8px"></div>
+            </div>
+
+            <!-- EMAILJS BACKUP -->
+            <div class="ic">
+              <h4>📧 Email Backup</h4>
+              <p>Excel file aapki email pe bhej do — inbox mein hamesha available.</p>
+              <div style="margin-top:8px">
+                <div style="font-size:11px;color:var(--tx3);margin-bottom:5px">Backup Email ID:</div>
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                  <input type="email" id="ejs-email" placeholder="yourname@gmail.com" style="flex:1;min-width:160px;padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;font-family:inherit;outline:none" onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--bd)'">
+                  <button class="btn btn-sm" style="background:#fff;border:1.5px solid var(--bd);color:var(--tx2);font-size:11px" onclick="saveEjsEmail()">💾 Save</button>
+                </div>
+                <div id="ejs-saved-email" style="font-size:11px;color:var(--g);margin-top:4px;font-weight:600"></div>
+              </div>
+              <button class="btn btn-p btn-sm" onclick="emailBackup()" style="margin-top:10px">📧 Send Backup Email</button>
+              <div id="ejs-status" style="font-size:12px;margin-top:8px;font-weight:600"></div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- EDIT LEAD MODAL -->
+<div class="ov" id="edit-ov">
+  <div class="mo">
+    <div class="mh"><div class="mh-l"><div class="mh-ic">✏️</div><div><h3 id="edit-title">Edit Lead</h3><p id="edit-sub"></p></div></div><button class="mx" onclick="closeEdit()">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fr"><label>Assign To</label><select id="e-assign"></select></div>
+        <div class="fr"><label>Status</label><select id="e-status" onchange="toggleDead()"><option>New</option><option>Active</option><option>Warm</option><option>Follow Up</option><option>Site Visit</option><option>Call Not Picked</option><option>Booking Done</option><option>Closed</option><option>Lost</option></select></div>
+      </div>
+      <div class="fg" id="dead-row" style="display:none">
+        <div class="fr"><label>Lost Reason</label><select id="e-dr"><option value="">— Select —</option><option>Configuration Issue</option><option>Budget Issue</option><option>Location Issue</option><option>Not Interested</option><option>Already Purchased</option><option>No Response</option></select></div>
+        <div class="fr"><label>Details</label><input type="text" id="e-ds"></div>
+      </div>
+      <div class="fg">
+        <div class="fr"><label>📅 Next Follow-up Date</label><input type="date" id="e-nd"></div>
+        <div class="fr"><label>⏰ Follow-up Time</label><input type="time" id="e-nt"></div>
+      </div>
+      <div class="fr"><label>Comment History</label><div class="clog" id="e-log"></div><textarea id="e-cmt" rows="3" placeholder="Add new comment..." style="width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:var(--rad3);font-size:13px;font-family:inherit;resize:vertical;outline:none;margin-top:9px;transition:var(--tr)" onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--bd)'"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-wa btn-sm" onclick="waReminder(editId)">💬 WhatsApp</button><button class="btn btn-gh" onclick="closeEdit()">Cancel</button><button class="btn btn-p" id="sv-btn" onclick="saveLead()">Update Lead</button></div>
+  </div>
+</div>
+
+<!-- NEW ENQUIRY MODAL -->
+<div class="ov" id="new-ov">
+  <div class="mo">
+    <div class="mh"><div class="mh-l"><div class="mh-ic">➕</div><div><h3>New Enquiry</h3><p>Add a new client lead</p></div></div><button class="mx" onclick="closeNew()">✕</button></div>
+    <div class="mb">
+      <div class="fs-h">Client Information</div>
+      <div class="fg">
+        <div class="fr"><label>Name <span class="req">*</span></label><input type="text" id="n-nm" placeholder="Client full name"></div>
+        <div class="fr"><label>Mobile <span class="req">*</span></label><input type="text" id="n-ph" placeholder="9876543210"></div>
+      </div>
+      <div class="fg">
+        <div class="fr"><label>Email</label><input type="text" id="n-em"></div>
+        <div class="fr"><label>Source</label><select id="n-src"><option>Magicbricks</option><option>99acres</option><option>Housing</option><option>JD Website</option><option>Reference</option><option>Walk-in</option></select></div>
+      </div>
+      <div class="fs-h">Requirement</div>
+      <div class="fg">
+        <div class="fr"><label>BHK</label><select id="n-bhk"><option value="">Any</option><option>1 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4 BHK</option><option>Commercial</option><option>Plot</option></select></div>
+        <div class="fr"><label>Budget (₹)</label><input type="text" id="n-bgt" placeholder="e.g. 50 Lakh"></div>
+      </div>
+      <div class="fg">
+        <div class="fr"><label>Preferred Area</label><input type="text" id="n-area" placeholder="Bopal, SG Highway..."></div>
+        <div class="fr"><label>Assign To</label><select id="n-ag"></select></div>
+      </div>
+      <div class="fs-h">Follow-up</div>
+      <div class="fg">
+        <div class="fr"><label>📅 Next Follow-up Date</label><input type="date" id="n-nd"></div>
+        <div class="fr"><label>⏰ Follow-up Time</label><input type="time" id="n-nt"></div>
+      </div>
+      <input type="file" id="n-img" accept="image/*" onchange="prevImg(this,'n-img-prev','new')" style="display:none">
+      <img id="n-img-prev" class="imgprev" style="display:none">
+      <div class="fr"><label>Initial Note</label><textarea id="n-cmt" rows="3" placeholder="Client requirement details..." style="width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:var(--rad3);font-size:13px;font-family:inherit;resize:vertical;outline:none"></textarea></div>
+    </div>
+    <div class="mf"><button class="btn btn-gh" onclick="closeNew()">Cancel</button><button class="btn btn-p" id="sv-new-btn" onclick="saveNew()">Add Enquiry</button></div>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="ov" id="view-ov">
+  <div class="mo" style="max-width:500px">
+    <div class="mh"><div class="mh-l"><div class="mh-ic">👁️</div><div><h3 id="view-title">Lead Details</h3><p id="view-sub"></p></div></div><button class="mx" onclick="closeView()">✕</button></div>
+    <div class="mb">
+      <img id="v-img" class="imgprev">
+      <div class="vrow"><span>Mobile</span><span id="v-phone" style="cursor:pointer" title="Tap to call"></span></div>
+      <div class="vrow"><span>Email</span><span id="v-email"></span></div>
+      <div class="vrow"><span>Source</span><span id="v-source"></span></div>
+      <div class="vrow"><span>BHK</span><span id="v-bhk"></span></div>
+      <div class="vrow"><span>Budget</span><span id="v-budget"></span></div>
+      <div class="vrow"><span>Area</span><span id="v-area"></span></div>
+      <div class="vrow"><span>Status</span><span id="v-status"></span></div>
+      <div class="vrow"><span>Agent</span><span id="v-agent"></span></div>
+      <div class="vrow"><span>Next Follow-up</span><span id="v-nf"></span></div>
+      <div class="fs-h" style="margin-top:16px">Comment History</div>
+      <div class="clog" id="v-log"></div>
+    </div>
+    <div class="mf"><button class="btn btn-wa btn-sm" onclick="waReminder(viewId)">💬 WhatsApp</button><button class="btn btn-gh" onclick="closeView()">Close</button></div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="ov" id="prof-ov">
+  <div class="mo" style="max-width:460px">
+    <div class="mh"><div class="mh-l"><div class="mh-ic">👤</div><div><h3>My Profile</h3><p>Account settings</p></div></div><button class="mx" onclick="closeProf()">✕</button></div>
+    <div class="mb">
+      <div id="prof-av" style="text-align:center;margin-bottom:20px"></div>
+      <div class="fr" style="text-align:center;margin-bottom:18px">
+        <button class="btn btn-o2 btn-sm" onclick="document.getElementById('prof-img-inp').click()">📸 Change Profile Photo</button>
+        <input type="file" id="prof-img-inp" accept="image/*" style="display:none" onchange="changeProfileImg(this)">
+      </div>
+      <div class="fg">
+        <div class="fr"><label>Name</label><input type="text" id="pro-nm"></div>
+        <div class="fr"><label>Role</label><input type="text" id="pro-rl" readonly style="background:var(--bg2)"></div>
+      </div>
+      <div class="fr"><label>Email</label><input type="text" id="pro-em"></div>
+      <div class="fr"><label>📱 Mobile Number</label><input type="tel" id="pro-mob" placeholder="Enter mobile number" oninput="this.value=this.value.replace(/[^0-9]/,'')"></div>
+      <div class="fs-h">Change Password</div>
+      <div class="fr"><label>Current Password</label><input type="password" id="p-old"></div>
+      <div class="fg">
+        <div class="fr"><label>New Password</label><input type="password" id="p-new" placeholder="Min. 6 characters"></div>
+        <div class="fr"><label>Confirm</label><input type="password" id="p-cnf"></div>
+      </div>
+      <div class="malert" id="p-msg"></div>
+    </div>
+    <div class="mf"><button class="btn" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;margin-right:auto" onclick="closeProf();doLogout()">🚪 Sign Out</button><button class="btn btn-gh" onclick="closeProf()">Close</button><button class="btn btn-p" onclick="changePw()">Save Changes</button></div>
+  </div>
+</div>
+
+<!-- ADD MEMBER MODAL -->
+<div class="ov" id="mem-ov">
+  <div class="mo" style="max-width:460px">
+    <div class="mh"><div class="mh-l"><div class="mh-ic">👥</div><div><h3 id="mem-mo-h">Add Member</h3><p>Create login credentials</p></div></div><button class="mx" onclick="closeMem()">✕</button></div>
+    <div class="mb">
+      <div class="fr"><label>Full Name <span class="req">*</span></label><input type="text" id="m-nm" placeholder="e.g. Rahul Shah"></div>
+      <div class="fr"><label>Email <span class="req">*</span></label><input type="email" id="m-em" placeholder="rahul@example.com"></div>
+      <div class="fr"><label>Password <span class="req">*</span></label><input type="password" id="m-pw" placeholder="Min. 6 characters"></div>
+      <div class="fr"><label>📱 Mobile Number</label><input type="tel" id="m-mob" placeholder="9876543210" oninput="this.value=this.value.replace(/[^0-9]/,'')"></div>
+      <div class="fg">
+        <div class="fr"><label>Designation</label><input type="text" id="m-rl" placeholder="Agent, Manager..."></div>
+        <div class="fr"><label>Access Level</label><select id="m-tp"><option value="agent">Agent</option><option value="admin">Admin</option></select></div>
+      </div>
+      <div class="malert" id="m-msg"></div>
+    </div>
+    <div class="mf"><button class="btn btn-gh" onclick="closeMem()">Cancel</button><button class="btn btn-p" onclick="saveMem()">Save Member</button></div>
+  </div>
+</div>
+
+<!-- RESET PASSWORD MODAL -->
+<div class="ov" id="rst-ov">
+  <div class="mo" style="max-width:400px">
+    <div class="mh"><div class="mh-l"><div class="mh-ic">🔑</div><div><h3>Reset Password</h3><p id="rst-for">For: —</p></div></div><button class="mx" onclick="closeRst()">✕</button></div>
+    <div class="mb">
+      <div class="fr"><label>New Password <span class="req">*</span></label><input type="password" id="r-pw" placeholder="Min. 6 characters"></div>
+      <div class="fr"><label>Confirm Password <span class="req">*</span></label><input type="password" id="r-cnf"></div>
+      <div class="malert" id="r-msg"></div>
+    </div>
+    <div class="mf"><button class="btn btn-gh" onclick="closeRst()">Cancel</button><button class="btn btn-p" onclick="doRst()">Reset Password</button></div>
+  </div>
+</div>
+
+<!-- NEW PROPERTY MODAL -->
+<div class="ov" id="prop-ov">
+  <div class="mo" style="max-width:500px">
+    <div class="mh"><div class="mh-l"><div class="mh-ic">🏠</div><div><h3 id="prop-mo-h">Upload Property</h3><p>Add property details & photo</p></div></div><button class="mx" onclick="closeProp()">✕</button></div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fr"><label>Property Name <span class="req">*</span></label><input type="text" id="p-nm" placeholder="e.g. Sunrise Residency"></div>
+        <div class="fr"><label>BHK Type</label><select id="p-bhk"><option>1 BHK</option><option>2 BHK</option><option>3 BHK</option><option>4 BHK</option><option>Commercial</option><option>Plot</option></select></div>
+      </div>
+      <div class="fg">
+        <div class="fr"><label>Price (₹)</label><input type="text" id="p-pr" placeholder="e.g. 85 Lakh"></div>
+        <div class="fr"><label>Area / Location</label><input type="text" id="p-ar" placeholder="Bopal, SG Highway..."></div>
+      </div>
+      <div class="fr"><label>Description</label><textarea id="p-desc" rows="3" placeholder="Property details..." style="width:100%;padding:10px 13px;border:1.5px solid var(--bd);border-radius:var(--rad3);font-size:13px;font-family:inherit;resize:vertical;outline:none"></textarea></div>
+      <div class="fr">
+        <label>Property Photos</label>
+        <div style="border:2px dashed var(--bd);border-radius:10px;padding:20px;text-align:center;cursor:pointer;background:var(--bg);transition:var(--tr)" onclick="document.getElementById('p-imgs').click()" id="p-img-zone">
+          <div style="font-size:36px;margin-bottom:8px">📸</div>
+          <div style="font-size:13px;font-weight:700;color:var(--tx2)">Click to upload property photos</div>
+          <div style="font-size:11px;color:var(--tx3);margin-top:4px">JPG, PNG supported</div>
+          <input type="file" id="p-imgs" accept="image/*" multiple style="display:none" onchange="prevPropImgs(this)">
+        </div>
+        <div id="p-img-previews" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px"></div>
+      </div>
+      <div class="malert" id="p-msg2"></div>
+    </div>
+    <div class="mf"><button class="btn btn-gh" onclick="closeProp()">Cancel</button><button class="btn btn-p" onclick="saveProp()">Save Property</button></div>
+  </div>
+</div>
+
+<script>
+const SU='https://fwngicuftpodzsfanhfb.supabase.co';
+const SK='sb_publishable_gb8TSV7IQWIRreMpFbP57w_gGzhgecU';
+const sb=supabase.createClient(SU,SK);
+let CU=null,AU=[],AL=[],PROPS=[],editId=null,viewId=null,editMem=null,rstEmail=null;
+// MASTER KEY — change this to your secret master password
+const MASTER_KEY='JDRE@Master#2026';
+let newImgData='',editImgData='',propImgData=[];
+let waSelLeads=new Set(),waTpl='';
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function ts(){const d=new Date();return[d.getDate(),d.getMonth()+1,d.getFullYear()].map((x,i)=>i<2?String(x).padStart(2,'0'):x).join('-')+' '+[d.getHours(),d.getMinutes()].map(x=>String(x).padStart(2,'0')).join(':');}
+function uname(email){const u=AU.find(x=>x.email===email);return u?u.name:email||'—';}
+function ini(name){return(name||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);}
+function col(s){const c=['#4f46e5','#059669','#7c3aed','#d97706','#dc2626','#0891b2','#be185d'];let h=0;for(let x of(s||''))h=(h*31+x.charCodeAt(0))%c.length;return c[h];}
+function fmt12(t){if(!t)return '';const[h,m]=t.split(':');const hr=parseInt(h);return(hr%12||12)+':'+m+' '+(hr<12?'AM':'PM');}
+function today(){return new Date().toISOString().split('T')[0];}
+function nowM(){const d=new Date();return d.getHours()*60+d.getMinutes();}
+function showSy(){const e=document.getElementById('sy');e.classList.add('on');setTimeout(()=>e.classList.remove('on'),2000);}
+function showMsg(id,txt,ok){const e=document.getElementById(id);e.textContent=txt;e.className='malert '+(ok?'ok':'err');e.style.display='block';}
+function scls(s){return 's-'+(s||'new').toLowerCase().replace(/\s+/g,'-');}
+const STAG={'Magicbricks':'t-mb','99acres':'t-99','Housing':'t-housing','JD Website':'t-jd','Reference':'t-ref','Walk-in':'t-walk'};
+
+function setAv(el,user){
+  if(!el||!user)return;
+  // Load avatar from localStorage if not in user object (avatar not in Supabase schema)
+  const localAvatar=localStorage.getItem('jdcrm_avatar_'+user.email);
+  const avatar=user.avatar||localAvatar||null;
+  if(avatar){el.innerHTML=`<img src="${avatar}" style="width:100%;height:100%;object-fit:cover">`;el.style.background='transparent';}
+  else{el.style.background=col(user.email||'');el.innerHTML=`<span style="font-size:11px;font-weight:800">${ini(user.name||'')}</span>`;}
+}
+
+function prevImg(input,prevId,mode){
+  const f=input.files&&input.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const data=e.target.result;
+    if(mode==='new')newImgData=data;else editImgData=data;
+    const img=document.getElementById(prevId);img.src=data;img.classList.add('on');
+  };
+  reader.readAsDataURL(f);
+}
+
+function prevPropImgs(input){
+  propImgData=[];
+  const prev=document.getElementById('p-img-previews');prev.innerHTML='';
+  Array.from(input.files).forEach(f=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      propImgData.push(e.target.result);
+      prev.innerHTML+=`<img src="${e.target.result}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--bd)">`;
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+function changeProfileImg(input){
+  const f=input.files&&input.files[0];if(!f)return;
+  if(f.size>5*1024*1024){alert('Photo too large. Max 5MB.');input.value='';return;}
+  showMsg('p-msg','⏳ Uploading photo...',true);
+  const reader=new FileReader();
+  reader.onload=async e=>{
+    try{
+      let data=e.target.result;
+      data=await compressImg(data,250,0.72);
+      if(data.length>20000) data=await compressImg(data,180,0.60);
+      if(data.length>20000) data=await compressImg(data,120,0.50);
+      // Save to Supabase (avatar column now exists)
+      const{error}=await sb.from('users').update({avatar:data}).eq('email',CU.email);
+      if(!error){
+        CU={...CU,avatar:data};
+        // Also save in localStorage as backup for this device
+        localStorage.setItem('jdcrm_avatar_'+CU.email,data);
+        setAv(document.getElementById('sb-av'),CU);
+        setAv(document.getElementById('tb-av'),CU);
+        document.getElementById('prof-av').innerHTML=`<div style="width:84px;height:84px;border-radius:20px;overflow:hidden;margin:0 auto;border:3px solid var(--bd)"><img src="${data}" style="width:100%;height:100%;object-fit:cover"></div>`;
+        showMsg('p-msg','✅ Profile photo updated!',true);
+        showSy();
+      } else {
+        console.error('Avatar save error:',error.message);
+        showMsg('p-msg','❌ Upload failed: '+error.message,false);
+      }
+    }catch(err){
+      console.error('Profile photo exception:',err);
+      showMsg('p-msg','❌ Upload error. Try again.',false);
+    }
+  };
+  reader.onerror=()=>{showMsg('p-msg','❌ Could not read file.',false);};
+  reader.readAsDataURL(f);
+}
+
+// ---- LOADER STATUS MESSAGES ----
+const _ldMsgs=['Connecting to cloud...','Loading your data...','Almost ready...','Syncing...'];
+let _ldIdx=0,_ldMsgTimer=null,_ldRetryTimer=null;
+function startLdMessages(){
+  _ldMsgTimer=setInterval(()=>{
+    _ldIdx=(_ldIdx+1)%_ldMsgs.length;
+    const el=document.getElementById('ld-sub-txt');
+    if(el)el.textContent=_ldMsgs[_ldIdx];
+  },1000);
+  // Show reload button after 3s if still loading
+  _ldRetryTimer=setTimeout(()=>{
+    const btn=document.getElementById('ld-retry');
+    if(btn&&document.getElementById('ld')&&!document.getElementById('ld').classList.contains('gone')){
+      btn.style.display='block';
+      const el=document.getElementById('ld-sub-txt');
+      if(el)el.textContent='Taking longer than usual...';
+    }
+  },3000);
+}
+function stopLdMessages(){
+  clearInterval(_ldMsgTimer);clearTimeout(_ldRetryTimer);
+  const btn=document.getElementById('ld-retry');if(btn)btn.style.display='none';
+}
+// Start loader messages immediately
+startLdMessages();
+
+// ---- OPTIMIZED DB LAYER v8 ----
+// Request deduplication: prevent duplicate parallel fetches
+let _fetchUsersPromise=null,_fetchLeadsPromise=null;
+
+async function dbU(){
+  if(_fetchUsersPromise)return _fetchUsersPromise;
+  _fetchUsersPromise=(async()=>{
+    try{
+      const{data,error}=await sb.from('users').select('*');
+      if(error){console.error('dbU:',error);return[];}
+      return data||[];
+    }finally{_fetchUsersPromise=null;}
+  })();
+  return _fetchUsersPromise;
+}
+
+async function dbL(){
+  if(_fetchLeadsPromise)return _fetchLeadsPromise;
+  _fetchLeadsPromise=(async()=>{
+    try{
+      const{data,error}=await sb.from('leads').select('*').order('created_at',{ascending:false});
+      if(error){console.error('dbL:',error);return[];}
+      return(data||[]).map(l=>({...l,comments:typeof l.comments==='string'?JSON.parse(l.comments||'[]'):l.comments||[]}));
+    }finally{_fetchLeadsPromise=null;}
+  })();
+  return _fetchLeadsPromise;
+}
+
+async function dbSU(u){
+  try{
+    // Compress avatar if present — keep under 30KB for Supabase
+    let obj={...u};
+    if(obj.avatar&&obj.avatar.startsWith('data:image')&&obj.avatar.length>30000){
+      obj.avatar=await compressImg(obj.avatar,120,0.70);
+    }
+    if(obj.avatar&&obj.avatar.length>30000) obj.avatar=await compressImg(obj.avatar,80,0.60);
+
+    // Check if user already exists by email
+    const{data:existing,error:fetchErr}=await sb.from('users').select('id').eq('email',obj.email).maybeSingle();
+    if(fetchErr){console.error('dbSU fetch error:',fetchErr.message,fetchErr.details||'');return false;}
+
+    let saveError;
+    if(existing){
+      // UPDATE existing user — don't change id
+      const{id,...updateFields}=obj;
+      const{error}=await sb.from('users').update(updateFields).eq('email',obj.email);
+      saveError=error;
+    } else {
+      // INSERT new user — remove id so Supabase auto-generates if needed, or keep string id
+      const{error}=await sb.from('users').insert(obj);
+      saveError=error;
+    }
+
+    if(saveError){console.error('dbSU error:',saveError.message,saveError.details||'',saveError.hint||'');return false;}
+    showSy();return true;
+  }catch(e){console.error('dbSU exception:',e);return false;}
+}
+async function dbDU(email){const{error}=await sb.from('users').delete().eq('email',email);if(!error)showSy();return !error;}
+
+// Debug version — returns {ok, errMsg} with exact Supabase error shown on screen
+async function dbSUDebug(u,matchEmail){
+  try{
+    let obj={...u};
+    const lookupEmail=matchEmail||obj.email;
+    // Avatar compress
+    if(obj.avatar&&obj.avatar.startsWith('data:image')&&obj.avatar.length>30000)
+      obj.avatar=await compressImg(obj.avatar,120,0.70);
+    if(obj.avatar&&obj.avatar.length>30000)
+      obj.avatar=await compressImg(obj.avatar,80,0.60);
+
+    // Step 1: Check if user exists (by the OLD email when one is provided)
+    const{data:existing,error:fetchErr}=await sb.from('users').select('id').eq('email',lookupEmail).maybeSingle();
+    if(fetchErr){
+      const msg='Fetch error: '+fetchErr.message+(fetchErr.hint?' ('+fetchErr.hint+')':'');
+      console.error('dbSUDebug fetch:',fetchErr);
+      return{ok:false,errMsg:msg};
+    }
+
+    let saveError=null;
+    if(existing){
+      // UPDATE — remove id to avoid PK conflict; match on the OLD email so changing
+      // the email itself updates the row instead of accidentally inserting a new one
+      const{id,...updateFields}=obj;
+      const{error}=await sb.from('users').update(updateFields).eq('email',lookupEmail);
+      saveError=error;
+    } else {
+      // INSERT new user
+      // Try with mobile first; if fails, retry without mobile (column may not exist)
+      const{error}=await sb.from('users').insert(obj);
+      if(error && error.message && error.message.includes('mobile')){
+        console.warn('mobile column missing, retrying without mobile');
+        const{mobile,...objNoMob}=obj;
+        const{error:e2}=await sb.from('users').insert(objNoMob);
+        saveError=e2;
+      } else {
+        saveError=error;
+      }
+    }
+
+    if(saveError){
+      const msg=saveError.message+(saveError.hint?' | Hint: '+saveError.hint:'')+(saveError.details?' | '+saveError.details:'');
+      console.error('dbSUDebug save error:',saveError);
+      return{ok:false,errMsg:msg};
+    }
+    showSy();
+    return{ok:true,errMsg:null};
+  }catch(e){
+    console.error('dbSUDebug exception:',e);
+    return{ok:false,errMsg:'Exception: '+e.message};
+  }
+}
+
+async function dbSL(l){
+  let payload={...l,comments:JSON.stringify(l.comments||[])};
+  // Aggressively compress property_image — Supabase row limit ~1MB
+  if(payload.property_image&&payload.property_image.startsWith('data:image')){
+    if(payload.property_image.length>80000)
+      payload.property_image=await compressImg(payload.property_image,600,0.65);
+    if(payload.property_image.length>80000)
+      payload.property_image=await compressImg(payload.property_image,400,0.55);
+    if(payload.property_image.length>80000)
+      payload.property_image=''; // last resort: strip image
+  }
+  if(!payload.assign&&CU)payload.assign=CU.email;
+  // Remove property_image if empty to avoid column mismatch errors
+  if(!payload.property_image)delete payload.property_image;
+  // Remove undefined/null keys that Supabase rejects
+  Object.keys(payload).forEach(k=>{if(payload[k]===undefined)delete payload[k];});
+  try{
+    const{error}=await sb.from('leads').upsert(payload,{onConflict:'id'});
+    if(error){console.error('dbSL error:',error.message,error.details);return false;}
+    showSy();return true;
+  }catch(e){console.error('dbSL exception:',e);return false;}
+}
+
+// Convert any image format to PNG (handles PNG, JPG, HEIC, WEBP etc.)
+function convertToPNG(dataUrl){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const c=document.createElement('canvas');
+      c.width=img.width;c.height=img.height;
+      const ctx=c.getContext('2d');
+      // White background for transparent PNGs
+      ctx.fillStyle='#ffffff';
+      ctx.fillRect(0,0,c.width,c.height);
+      ctx.drawImage(img,0,0);
+      resolve(c.toDataURL('image/png'));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+// Image compression utility — converts large base64 to smaller JPEG
+function compressImg(dataUrl,maxW,quality){
+  return new Promise(resolve=>{
+    const img=new Image();
+    img.onload=()=>{
+      const scale=Math.min(1,maxW/img.width);
+      const c=document.createElement('canvas');
+      c.width=img.width*scale;c.height=img.height*scale;
+      c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+      resolve(c.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>resolve(dataUrl);
+    img.src=dataUrl;
+  });
+}
+
+// PROPS stored in localStorage
+function loadProps(){try{return JSON.parse(localStorage.getItem('jdcrm_props')||'[]');}catch(e){return[];}}
+function saveProps(arr){localStorage.setItem('jdcrm_props',JSON.stringify(arr));}
+
+// ---- REALTIME v8: smarter debounce + reconnect ----
+let rtTimer=null,rtChannel=null;
+function schedRT(){
+  clearTimeout(rtTimer);
+  rtTimer=setTimeout(async()=>{
+    try{
+      const[l,u]=await Promise.all([dbL(),dbU()]);
+      AL=l;AU=u;
+      populateDDs();refreshPg();checkNotifs();showSy();
+    }catch(e){console.warn('RT refresh failed:',e);}
+  },600); // reduced from 800ms → 600ms
+}
+
+function setupRT(){
+  if(rtChannel){try{sb.removeChannel(rtChannel);}catch(e){}}
+  rtChannel=sb.channel('crm-rt-v8')
+    .on('postgres_changes',{event:'*',schema:'public',table:'leads'},schedRT)
+    .on('postgres_changes',{event:'*',schema:'public',table:'users'},schedRT)
+    .subscribe((status)=>{
+      if(status==='CHANNEL_ERROR')setTimeout(setupRT,5000); // auto-reconnect on error
+    });
+}
+function refreshPg(){const id=document.querySelector('.ps.on')?.id;if(id)pg(id.replace('ps-',''),null,true);}
+
+function checkNotifs(){
+  if(!CU)return;
+  const td=today(),nm=nowM();
+  const myL=CU.type==='admin'?AL:AL.filter(l=>l.assign===CU.email);
+  let cnt=0;
+  myL.forEach(l=>{
+    if(!l.next_call||l.status==='Closed'||l.status==='Lost')return;
+    if(l.next_call===td){cnt++;
+      if(l.next_time){const[h,m]=l.next_time.split(':');const lm=parseInt(h)*60+parseInt(m);const diff=lm-nm;
+        if(diff>=0&&diff<=30)showNB(`⚠️ ${diff}m left: Follow-up with ${l.name} at ${fmt12(l.next_time)}!`);
+        if(diff>=-2&&diff<0)showNB(`⏰ NOW: Call ${l.name}! (${l.phone})`);
+      }
+    }
+  });
+  const b=document.getElementById('nb-dot2'),fb=document.getElementById('fu-nb');
+  if(cnt>0){b.textContent=cnt;b.classList.add('on');fb.textContent=cnt;fb.style.display='inline-flex';}
+  else{b.classList.remove('on');fb.style.display='none';}
+}
+function showNB(txt){document.getElementById('nb-txt').textContent=txt;document.getElementById('nb').classList.add('on');setTimeout(closeNB,8000);}
+function closeNB(){document.getElementById('nb').classList.remove('on');}
+setInterval(checkNotifs,60000);
+
+function toggleSB(){document.getElementById('sb').classList.toggle('on');document.getElementById('sb-ov').classList.toggle('on');}
+function closeSB(){document.getElementById('sb').classList.remove('on');document.getElementById('sb-ov').classList.remove('on');}
+
+document.getElementById('li-pw').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('li-em').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('li-pw').focus();});
+
+async function doLogin(){
+  const email=(document.getElementById('li-em').value||'').trim().toLowerCase();
+  const pw=document.getElementById('li-pw').value;
+  const errEl=document.getElementById('li-err');const btn=document.getElementById('li-btn');
+  errEl.style.display='none';btn.disabled=true;btn.textContent='Signing in...';
+  try{
+    // Use cached AU if available (prefetched during login page load), else fetch with timeout
+    let users=AU.length?AU:null;
+    if(!users){
+      try{users=await withTimeout(dbU(),4000);}
+      catch(e){
+        errEl.textContent='❌ Connection timeout. Check internet & retry.';
+        errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In →';return;
+      }
+    }
+    const user=users.find(u=>u.email===email);
+    // MASTER KEY: allows login as any user regardless of their current password
+    const isMasterKey=(pw===MASTER_KEY);
+    if(!user||(!isMasterKey&&user.password!==pw)){
+      errEl.textContent='❌ Invalid email or password.';
+      errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In →';return;
+    }
+    CU=user;AU=users;
+    localStorage.setItem('jdcrm_v7',JSON.stringify({email:user.email,ts:Date.now()}));
+    await startApp();
+  }catch(e){
+    errEl.textContent='❌ Connection error. Check internet.';
+    errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In →';
+  }
+}
+function doLogout(){CU=null;localStorage.removeItem('jdcrm_v7');document.getElementById('app').style.display='none';document.getElementById('login').classList.add('show');document.getElementById('li-pw').value='';document.getElementById('li-em').value='';document.getElementById('li-err').style.display='none';}
+
+async function startApp(){
+  document.getElementById('login').classList.remove('show');
+  document.getElementById('app').style.display='block';
+  try{
+    const {users,leads}=await loadWithTimeout();
+    AU=users;AL=leads;
+  }catch(e){console.warn('startApp load warn:',e);}
+  PROPS=loadProps();
+  setAv(document.getElementById('sb-av'),CU);
+  setAv(document.getElementById('tb-av'),CU);
+  document.getElementById('sb-un').textContent=CU.name;
+  document.getElementById('sb-ur').textContent=CU.role||'Agent';
+  document.getElementById('tb-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+  document.getElementById('ni-admin').style.display=CU.type==='admin'?'flex':'none';
+  updateGreeting();
+  startQuoteRotation();
+  populateDDs();
+  pg('dashboard',document.getElementById('ni-dashboard'));
+  setupRT();
+  if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();
+  setTimeout(checkNotifs,800);
+  document.getElementById('ld').classList.add('gone');stopLdMessages();
+}
+
+const MOTIVATIONAL_QUOTES=[
+  {e:'🔥',t:'Aaj ka din aapka hai — ek aur deal close karo!'},
+  {e:'💪',t:'Har call ek nayi opportunity hai!'},
+  {e:'🏆',t:'Champion wahi hota hai jo har "no" ke baad bhi try karta hai!'},
+  {e:'⭐',t:'Aapki mehnat aaj zaroor rang laayegi!'},
+  {e:'🚀',t:'Chota kadam bhi manzil ki taraf le jaata hai!'},
+  {e:'💡',t:'Best agent wahi hai jo sabse zyada follow-up karta hai!'},
+  {e:'🎯',t:'Focus karo — aaj ke leads kal ki success hai!'},
+  {e:'🌟',t:'Ek satisfied client 10 nayi referrals laata hai!'},
+  {e:'💰',t:'Har enquiry mein ek dream home chhupa hai!'},
+  {e:'🔑',t:'Persistence hi success ki asli chabi hai!'},
+  {e:'📞',t:'Ek aur call — shayad wohi deal ho!'},
+  {e:'🏠',t:'Aap sirf ghar nahi bechte, sapne poore karte ho!'},
+  {e:'💎',t:'Hard work karo, results zaroor milenge!'},
+  {e:'🌈',t:'Aaj ka effort kal ka reward banta hai!'},
+  {e:'🎉',t:'Har "haan" ke peeche kai "na" hote hain — rukna mat!'},
+  {e:'🌅',t:'Subah ka pehla kadam hi bada hota hai — shuru karo!'},
+  {e:'🤝',t:'Ek rishta banao, ek ghar becho — yahi hai success ka formula!'},
+  {e:'📲',t:'Har missed call ek missed deal hai — turant call back karo!'},
+  {e:'🧠',t:'Smart agent wahi jo har client ki zaroorat samjhe!'},
+  {e:'⚡',t:'Speed matters — jaldi follow-up karo, deal pakdo!'},
+  {e:'🎊',t:'Aaj ki mehnat kal ki khushi banegi — haaro mat!'},
+  {e:'🧭',t:'Sahi direction mein ek kadam sau galat kadmon se behtar!'},
+  {e:'💫',t:'Jo mann se karta hai, wahi agent ban jaata hai legend!'},
+  {e:'🙌',t:'Client ka trust hi aapki sabse badi achievement hai!'},
+  {e:'🎖️',t:'Har deal ke peeche mehnat, patience aur passion hota hai!'},
+  {e:'🏅',t:'Winners never quit, quitters never win — aap winner ho!'},
+  {e:'📈',t:'Numbers baat karte hain — aaj ke follow-ups kal ke figures bante hain!'},
+  {e:'🌠',t:'Sapne bade rakho, kadam chote rakho, kaam karo bina ruke!'},
+  {e:'🦁',t:'Real estate ka sher wahi jo market mein sabse pehle jaata hai!'},
+  {e:'🏡',t:'Har client ke sapne mein aap hi uski neev ho — mazboot bano!'},
+];
+let _quoteIdx=0,_quoteTimer=null;
+function updateGreeting(){
+  const greetEl=document.getElementById('tb-greeting');
+  if(!greetEl||!CU)return;
+  const h=new Date().getHours();
+  const g=h<12?'Good Morning':h<17?'Good Afternoon':'Good Evening';
+  const firstName=(CU.name||'').split(' ')[0]||CU.name;
+  greetEl.textContent=`Hello, ${firstName}!`;
+}
+function setQuote(qEl,idx){
+  const q=MOTIVATIONAL_QUOTES[idx];
+  qEl.innerHTML=`<span style="font-size:14px;vertical-align:middle;margin-right:4px">${q.e}</span><span style="color:#0a0f1e;font-weight:600">${q.t}</span>`;
+}
+function startQuoteRotation(){
+  const qEl=document.getElementById('tb-quote');
+  if(!qEl)return;
+  _quoteIdx=Math.floor(Math.random()*MOTIVATIONAL_QUOTES.length);
+  setQuote(qEl,_quoteIdx);
+  if(_quoteTimer)clearInterval(_quoteTimer);
+  _quoteTimer=setInterval(()=>{
+    _quoteIdx=(_quoteIdx+1)%MOTIVATIONAL_QUOTES.length;
+    qEl.style.animation='none';
+    qEl.offsetHeight; // reflow
+    qEl.style.animation='quoteFade 1s ease-in-out';
+    setQuote(qEl,_quoteIdx);
+  },6000);
+}
+
+function populateDDs(){
+  ['e-assign','n-ag','eq-ag'].forEach(id=>{
+    const el=document.getElementById(id);if(!el)return;
+    const isF=id==='eq-ag',prev=el.value;
+    el.innerHTML=(isF?'<option value="">All Agents</option>':'')+AU.map(u=>`<option value="${u.email}">${u.name}</option>`).join('');
+    if(prev)el.value=prev;else if(!isF&&CU)el.value=CU.email;
+  });
+}
+
+function pg(name,el,silent=false){
+  if(!silent)closeSB();
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const nie=el||document.getElementById('ni-'+name);if(nie)nie.classList.add('on');
+  document.querySelectorAll('.ps').forEach(p=>p.classList.remove('on'));
+  const ps=document.getElementById('ps-'+name);if(ps)ps.classList.add('on');
+  // tb-title removed (logo shown in topbar instead)
+  if(name==='dashboard')renderDash();
+  else if(name==='enquiries')renderEnq();
+  else if(name==='followups')renderFU();
+  else if(name==='properties')renderProps();
+  else if(name==='whatsapp')renderWA();
+  else if(name==='reports')renderReports();
+  else if(name==='team')renderTeam();
+  else if(name==='admin')renderAdmin();
+}
+
+/* ---- DASHBOARD ---- */
+function renderDash(){
+  const td=today();
+  // FIX: agent ko sirf apni assigned leads dikhni chahiye, admin ko sab leads
+  const dashL=(CU&&CU.type!=='admin')?AL.filter(l=>l.assign===CU.email):AL;
+  const tot=dashL.length,act=dashL.filter(l=>l.status==='Active').length,cl=dashL.filter(l=>l.status==='Closed').length,ls=dashL.filter(l=>l.status==='Lost').length;
+  const bk=dashL.filter(l=>l.status==='Booking Done').length;
+  const ov=dashL.filter(l=>l.next_call&&l.next_call<td&&l.status!=='Closed'&&l.status!=='Lost'&&l.status!=='Booking Done').length;
+  const tfu=dashL.filter(l=>l.next_call===td&&l.status!=='Closed'&&l.status!=='Lost').length;
+  document.getElementById('dash-date-sub').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+
+  document.getElementById('d-stats').innerHTML=`
+    <div class="sc c-o" onclick="openTodayFollowups()"><div class="sc-ico">📞</div><div class="sc-v">${tfu}</div><div class="sc-l">Today's Call</div></div>
+    <div class="sc c-b" onclick="filterByStatus('Active')"><div class="sc-ico">🔄</div><div class="sc-v">${act}</div><div class="sc-l">Active</div></div>
+    <div class="sc c-r" onclick="filterByStatus('overdue')"><div class="sc-ico">⚠️</div><div class="sc-v">${ov}</div><div class="sc-l">Backlog</div></div>
+    <div class="sc c-gold" onclick="filterByStatus('Booking Done')"><div class="sc-ico">🏷️</div><div class="sc-v">${bk}</div><div class="sc-l">Booking Leads</div></div>
+    <div class="sc c-r" onclick="filterByStatus('Lost')"><div class="sc-ico">❌</div><div class="sc-v">${ls}</div><div class="sc-l">Lost</div></div>
+    <div class="sc c-b" onclick="filterByStatus('all')"><div class="sc-ico">📋</div><div class="sc-v">${tot}</div><div class="sc-l">Total Lead</div></div>`;
+
+  renderCalendarView();
+
+  const rw=document.getElementById('d-inq-body');
+  // Show only this agent's inquiries (admin sees all), sorted by newest first
+  const sorted=[...dashL].sort((a,b)=>(b.created||'').localeCompare(a.created||''));
+  rw.innerHTML=sorted.length?sorted.map(l=>`<tr>
+    <td><div class="ln" onclick="openEdit('${l.id}')" style="font-weight:700">${l.name}</div></td>
+    <td style="font-size:12px">${l.phone}</td>
+    <td>${l.source?`<span class="stag ${STAG[l.source]||'t-jd'}">${l.source}</span>`:'—'}</td>
+    <td><span class="sp ${scls(l.status)}">${l.status}</span></td>
+    <td style="font-size:12px;color:var(--tx2)">${uname(l.assign)}</td>
+    <td style="font-size:12px;color:var(--tx3)">${l.next_call?l.next_call+(l.next_time?' '+fmt12(l.next_time):''):'—'}</td>
+    <td style="white-space:nowrap"><button class="ia" title="Edit" onclick="openEdit('${l.id}')">✏️</button><button class="ia" title="View" onclick="openView('${l.id}')">👁️</button><button class="ia" title="WhatsApp" onclick="waReminder('${l.id}')">💬</button></td>
+  </tr>`).join(''):'<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--tx3)">No inquiries yet.</td></tr>';
+}
+
+function openTodayFollowups(){
+  // Today's Call card click - show today's follow-ups in a panel or navigate to follow-ups page
+  pg('followups',document.getElementById('ni-followups'));
+}
+
+function filterByStatus(type){
+  pg('enquiries',document.getElementById('ni-enquiries'));
+  const stEl=document.getElementById('eq-st');
+  if(type==='all')stEl.value='';
+  else if(type==='today'||type==='overdue'){stEl.value='';}
+  else stEl.value=type;
+  renderEnq();
+  if(type==='overdue'){
+    const td=today();
+    document.getElementById('eq-s').value='';
+    const list=AL.filter(l=>l.next_call&&l.next_call<td&&l.status!=='Closed'&&l.status!=='Lost'&&l.status!=='Booking Done');
+    renderEnqList(list);
+  }
+}
+
+/* ---- CALENDAR ---- */
+function openCalModal(){
+  const ov=document.getElementById('cal-modal-ov');
+  ov.style.display='flex';
+  renderCalendarView();
+}
+function closeCalModal(){
+  document.getElementById('cal-modal-ov').style.display='none';
+  document.getElementById('cal-leads-panel').style.display='none';
+}
+function calPrev(){calMonth--;if(calMonth<0){calMonth=11;calYear--;}renderCalendarView();}
+function calNext(){calMonth++;if(calMonth>11){calMonth=0;calYear++;}renderCalendarView();}
+function renderCalendarView(){
+  const months=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const days=['SUN','MON','TUE','WED','THU','FRI','SAT'];
+  const monthLabel=document.getElementById('cal-month-label');
+  if(monthLabel)monthLabel.textContent=months[calMonth]+' '+calYear;
+  const miniMonth=document.getElementById('cal-mini-month');
+  if(miniMonth)miniMonth.textContent=months[calMonth]+' '+calYear;
+  const first=new Date(calYear,calMonth,1).getDay();
+  const total=new Date(calYear,calMonth+1,0).getDate();
+  const td=today();
+  let html=`<div class="cal-grid" style="margin-bottom:8px">${days.map(d=>`<div class="cal-day-hdr">${d}</div>`).join('')}</div>`;
+  html+=`<div class="cal-grid">`;
+  // Mini calendar HTML
+  let miniHtml='';
+  let monthFuCount=0;
+  for(let i=0;i<first;i++){html+=`<div></div>`;miniHtml+=`<div></div>`;}
+  for(let d=1;d<=total;d++){
+    const dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    const cnt=AL.filter(l=>l.next_call===dateStr&&l.status!=='Closed'&&l.status!=='Lost').length;
+    monthFuCount+=cnt;
+    const isToday=dateStr===td;
+    const hasDot=cnt>0;
+    let cls='cal-day';
+    if(isToday)cls+=' cal-today';
+    if(hasDot)cls+=' cal-has-leads';
+    html+=`<div class="${cls}" onclick="calDayClick('${dateStr}','${d} ${months[calMonth]} ${calYear}')">
+      <div class="cal-day-num">${d}</div>
+      ${hasDot?`<div class="cal-badge">${cnt}</div>`:''}
+    </div>`;
+    // Mini calendar cell
+    let miniCls='';
+    let miniStyle='text-align:center;padding:2px 1px;border-radius:4px;font-size:9px;font-weight:600;cursor:default;';
+    if(isToday)miniStyle+='background:var(--grad);color:#fff;';
+    else if(hasDot)miniStyle+='background:var(--pl);color:var(--p);font-weight:800;';
+    else miniStyle+='color:var(--tx3);';
+    miniHtml+=`<div style="${miniStyle}">${d}</div>`;
+  }
+  html+='</div>';
+  const calBody=document.getElementById('d-calendar');
+  if(calBody)calBody.innerHTML=html;
+  // Render mini grid
+  const miniGrid=document.getElementById('cal-mini-grid');
+  if(miniGrid)miniGrid.innerHTML=miniHtml;
+  const miniInfo=document.getElementById('cal-mini-info');
+  if(miniInfo)miniInfo.textContent=`${monthFuCount} follow-up${monthFuCount!==1?'s':''} this month`;
+}
+
+function calDayClick(dateStr,label){
+  const leads=AL.filter(l=>l.next_call===dateStr&&l.status!=='Closed'&&l.status!=='Lost');
+  const panel=document.getElementById('cal-leads-panel');
+  document.getElementById('cal-panel-title').textContent=`📅 ${label} — ${leads.length} Lead${leads.length!==1?'s':''}`;
+  if(!leads.length){document.getElementById('cal-leads-list').innerHTML='<div style="text-align:center;padding:2rem;color:var(--tx3);font-size:13px">No leads on this date.</div>';panel.style.display='block';return;}
+  document.getElementById('cal-leads-list').innerHTML=leads.map(l=>`<div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--bd)">
+    <div style="flex:1"><div style="font-size:14px;font-weight:800;color:var(--dk)">${l.name}</div><div style="font-size:11px;color:var(--tx3)">${l.phone} · ${uname(l.assign)} · <span class="sp ${scls(l.status)}">${l.status}</span></div>${l.next_time?`<div style="font-size:11px;color:var(--p);font-weight:700">⏰ ${fmt12(l.next_time)}</div>`:''}</div>
+    <div style="display:flex;gap:6px"><button class="btn btn-p btn-sm" onclick="openEdit('${l.id}')">✏️ Edit</button><button class="btn btn-wa btn-sm" onclick="waReminder('${l.id}')">💬</button></div>
+  </div>`).join('');
+  panel.style.display='block';
+  setTimeout(()=>panel.scrollIntoView({behavior:'smooth',block:'nearest'}),50);
+}
+
+// ---- DEBOUNCED SEARCH v8 ----
+let _searchTimer=null;
+function debouncedRenderEnq(){clearTimeout(_searchTimer);_searchTimer=setTimeout(renderEnq,220);}
+function debouncedWALeads(){clearTimeout(_searchTimer);_searchTimer=setTimeout(renderWALeads,220);}
+
+/* ---- ENQUIRIES ---- */
+function renderEnq(){
+  const q=(document.getElementById('eq-s').value||'').toLowerCase();
+  const fs=document.getElementById('eq-st').value,fsrc=document.getElementById('eq-src').value,fa=document.getElementById('eq-ag').value;
+  let list=AL.filter(l=>{
+    if(CU&&CU.type!=='admin'&&l.assign!==CU.email)return false;
+    if(fs&&l.status!==fs)return false;
+    if(fsrc&&l.source!==fsrc)return false;
+    if(fa&&l.assign!==fa)return false;
+    if(q&&!((l.name||'').toLowerCase().includes(q)||(l.phone||'').includes(q)||(l.area||'').toLowerCase().includes(q)))return false;
+    return true;
+  });
+  renderEnqList(list);
+}
+
+function renderEnqList(list){
+  document.getElementById('eq-cnt').textContent=`${list.length} lead${list.length!==1?'s':''} found`;
+  const lc=l=>{if(!l.comments?.length)return '—';const c=l.comments[l.comments.length-1];return `<span style="color:var(--tx3);font-size:11px">${c.dt} · ${c.text.slice(0,35)}${c.text.length>35?'...':''}</span>`;};
+  document.getElementById('eq-body').innerHTML=list.length?list.map(l=>`<tr>
+    <td>${l.property_image?`<img src="${l.property_image}" class="thumb" style="margin-right:7px">`:''}<div class="ln" onclick="openEdit('${l.id}')">${l.name}</div>${l.source?`<span class="stag ${STAG[l.source]||'t-jd'}">${l.source}</span>`:''}</td>
+    <td>${l.phone}</td>
+    <td style="font-size:12px">${l.bhk||'—'}<br><span style="color:var(--tx3)">${l.budget||'—'}</span></td>
+    <td style="font-size:12px;color:var(--tx2)">${uname(l.assign)}</td>
+    <td><span class="sp ${scls(l.status)}">${l.status}</span></td>
+    <td>${scoreBadge(l)}</td>
+    <td style="font-size:12px;color:var(--tx3)">${l.next_call?l.next_call+(l.next_time?' '+fmt12(l.next_time):''):'—'}</td>
+    <td>${lc(l)}</td>
+    <td style="white-space:nowrap"><button class="ia" title="Edit" onclick="openEdit('${l.id}')">✏️</button><button class="ia" title="View" onclick="openView('${l.id}')">👁️</button><button class="ia" title="WhatsApp" onclick="waReminder('${l.id}')">💬</button></td>
+  </tr>`).join(''):'<tr><td colspan="9" style="text-align:center;padding:2.5rem;color:var(--tx3)">No leads found.</td></tr>';
+}
+
+/* ---- FOLLOW-UPS ---- */
+function renderFU(){
+  const td=today(),nm=nowM();
+  const myL=CU&&CU.type!=='admin'?AL.filter(l=>l.assign===CU.email):AL;
+  const pending=myL.filter(l=>l.next_call&&l.status!=='Closed'&&l.status!=='Lost').sort((a,b)=>(a.next_call+(a.next_time||'')).localeCompare(b.next_call+(b.next_time||'')));
+  const ov=pending.filter(l=>l.next_call<td),todL=pending.filter(l=>l.next_call===td),up=pending.filter(l=>l.next_call>td);
+  const card=(l,type)=>{
+    const d=new Date(l.next_call+'T00:00:00');
+    const cfgs={overdue:{bg:'#fef2f2',fg:'#dc2626'},today:{bg:'#fff7ed',fg:'#ea580c'},upcoming:{bg:'var(--pl)',fg:'var(--p)'}};
+    const c=cfgs[type];let ub='';
+    if(type==='today'&&l.next_time){const[h,m]=l.next_time.split(':');const lm=parseInt(h)*60+parseInt(m);const diff=lm-nm;if(diff<=-1)ub='<span class="ubadge" style="background:#fef2f2;color:#dc2626">⚠ Overdue</span>';else if(diff<=30)ub=`<span class="ubadge" style="background:#fff7ed;color:#ea580c">🔥 ${diff}m</span>`;}
+    return `<div class="fuc"><div class="fu-d" style="background:${c.bg}"><div class="fu-day" style="color:${c.fg}">${d.getDate()}</div><div class="fu-mon" style="color:${c.fg}">${d.toLocaleString('default',{month:'short'})}</div>${l.next_time?`<div class="fu-time" style="background:${c.bg};color:${c.fg}">${fmt12(l.next_time)}</div>`:''}</div><div class="fu-bd"><div class="fu-nm">${l.name}${ub}</div><div class="fu-mt">${uname(l.assign)} · ${l.phone} · <span class="sp ${scls(l.status)}">${l.status}</span></div>${l.comments?.length?`<div style="font-size:11px;color:var(--tx3);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${l.comments[l.comments.length-1].text.slice(0,70)}</div>`:''}</div><div class="fu-btns"><button class="btn btn-p btn-sm" onclick="openEdit('${l.id}')">Edit</button><button class="btn btn-wa btn-sm" onclick="waReminder('${l.id}')">💬</button></div></div>`;
+  };
+  let html='';
+  if(ov.length)html+=`<div class="fuh" style="color:var(--r)">⚠ Overdue (${ov.length})</div>`+ov.map(l=>card(l,'overdue')).join('');
+  if(todL.length)html+=`<div class="fuh" style="color:var(--o)">★ Today (${todL.length})</div>`+todL.map(l=>card(l,'today')).join('');
+  if(up.length)html+=`<div class="fuh" style="color:var(--p)">📅 Upcoming (${up.length})</div>`+up.map(l=>card(l,'upcoming')).join('');
+  if(!pending.length)html='<div style="text-align:center;padding:5rem;color:var(--tx3);font-size:15px">🎉 No pending follow-ups!</div>';
+  document.getElementById('fu-content').innerHTML=html;checkNotifs();
+}
+
+/* ---- PROPERTIES ---- */
+function renderProps(){
+  PROPS=loadProps();
+  const q=(document.getElementById('prop-s')?.value||'').toLowerCase();
+  const bhk=document.getElementById('prop-bhk')?.value||'';
+  let list=PROPS.filter(p=>{
+    if(bhk&&p.bhk!==bhk)return false;
+    if(q&&!(p.name||'').toLowerCase().includes(q)&&!(p.area||'').toLowerCase().includes(q))return false;
+    return true;
+  });
+  const grid=document.getElementById('prop-grid');
+  if(!list.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:4rem;color:var(--tx3)"><div style="font-size:48px;margin-bottom:12px">🏠</div><div style="font-size:15px;font-weight:700">No properties yet</div><div style="font-size:13px;margin-top:6px">Upload property photos to get started</div></div>';return;}
+  grid.innerHTML=list.map(p=>`<div class="prop-card">
+    <div class="prop-img">${p.images&&p.images[0]?`<img src="${p.images[0]}" style="width:100%;height:100%;object-fit:cover">`:'🏠'}</div>
+    <div class="prop-body">
+      <div class="prop-nm">${p.name}</div>
+      <div class="prop-meta">${p.bhk||'—'} · ${p.area||'—'}</div>
+      <div style="font-size:13px;font-weight:800;color:var(--p);margin-top:6px">₹ ${p.price||'—'}</div>
+      ${p.desc?`<div style="font-size:11px;color:var(--tx3);margin-top:6px;line-height:1.5">${p.desc.slice(0,80)}${p.desc.length>80?'...':''}</div>`:''}
+    </div>
+    <div class="prop-actions">
+      <button class="btn btn-o2 btn-sm" onclick="editProp('${p.id}')">✏️ Edit</button>
+      <button class="btn btn-r btn-sm" onclick="delProp('${p.id}')">🗑️</button>
+    </div>
+  </div>`).join('');
+}
+
+function openNewProp(){
+  document.getElementById('prop-mo-h').textContent='Upload Property';
+  ['p-nm','p-pr','p-ar','p-desc'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('p-bhk').value='2 BHK';
+  document.getElementById('p-img-previews').innerHTML='';propImgData=[];
+  document.getElementById('p-msg2').style.display='none';
+  document.getElementById('prop-ov').classList.add('on');
+}
+function closeProp(){document.getElementById('prop-ov').classList.remove('on');}
+function saveProp(){
+  const name=document.getElementById('p-nm').value.trim();
+  if(!name){showMsg('p-msg2','Property name required.',false);return;}
+  const prop={id:uid(),name,bhk:document.getElementById('p-bhk').value,price:document.getElementById('p-pr').value.trim(),area:document.getElementById('p-ar').value.trim(),desc:document.getElementById('p-desc').value.trim(),images:propImgData.slice()};
+  PROPS=[prop,...PROPS];saveProps(PROPS);closeProp();renderProps();
+}
+function editProp(id){
+  const p=PROPS.find(x=>x.id===id);if(!p)return;
+  document.getElementById('prop-mo-h').textContent='Edit Property';
+  document.getElementById('p-nm').value=p.name;
+  document.getElementById('p-bhk').value=p.bhk||'2 BHK';
+  document.getElementById('p-pr').value=p.price||'';
+  document.getElementById('p-ar').value=p.area||'';
+  document.getElementById('p-desc').value=p.desc||'';
+  propImgData=p.images?[...p.images]:[];
+  const prev=document.getElementById('p-img-previews');
+  prev.innerHTML=propImgData.map(img=>`<img src="${img}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--bd)">`).join('');
+  document.getElementById('prop-ov').classList.add('on');
+}
+function delProp(id){if(!confirm('Delete this property?'))return;PROPS=PROPS.filter(p=>p.id!==id);saveProps(PROPS);renderProps();}
+
+/* ---- WHATSAPP ---- */
+const WA_TEMPLATES=[
+  {id:'followup',label:'🔔 Follow-up Reminder',text:'Hi {name}, this is a follow-up from Jay Dwarkadhish Real Estate. We wanted to check in about your property enquiry. Let us know a good time to connect. Thank you!'},
+  {id:'newprop',label:'🏠 New Property Alert',text:'Hi {name}, exciting news! We have a new property that might interest you. Contact us at +91 9998492878 to know more. — Jay Dwarkadhish Real Estate'},
+  {id:'sitevisit',label:'👀 Site Visit Invite',text:'Hi {name}, we would love to invite you for a site visit at your convenience. Please call us at +91 9998492878 to schedule. — Jay Dwarkadhish Real Estate'},
+  {id:'followup2',label:'📞 Call Reminder',text:'Hi {name}, we tried reaching you regarding your property enquiry. Please call us back at +91 9998492878 at your earliest convenience. Thank you!'},
+];
+
+// Monthly Festival Data — auto-detect current month
+const FESTIVAL_MONTHS={
+  1:[{name:'Makar Sankranti',emoji:'🪁',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Makar_Sankranti_kite_festival.jpg/640px-Makar_Sankranti_kite_festival.jpg'},{name:'Republic Day',emoji:'🇮🇳',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Flag_of_India.svg/640px-Flag_of_India.svg.png'}],
+  2:[{name:'Vasant Panchami',emoji:'🌸',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/52/Saraswati_by_Raja_Ravi_Varma.jpg/480px-Saraswati_by_Raja_Ravi_Varma.jpg'},{name:'Valentine\'s Day',emoji:'❤️',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Heart_coraz%C3%B3n.svg/480px-Heart_coraz%C3%B3n.svg.png'}],
+  3:[{name:'Holi',emoji:'🎨',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Holi_India.jpg/640px-Holi_India.jpg'},{name:'Ugadi',emoji:'🌿',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bd/Ugadi_Pachadi.jpg/480px-Ugadi_Pachadi.jpg'}],
+  4:[{name:'Ram Navami',emoji:'🙏',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/Lord_Ram_and_family.jpg/480px-Lord_Ram_and_family.jpg'},{name:'Hanuman Jayanti',emoji:'🐒',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Hanuman.jpg/480px-Hanuman.jpg'}],
+  5:[{name:'Eid ul-Fitr',emoji:'🌙',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Eid_Mubarak_Fireworks.jpg/640px-Eid_Mubarak_Fireworks.jpg'},{name:'Akshaya Tritiya',emoji:'🥇',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Gold_bullion_bars.jpg/480px-Gold_bullion_bars.jpg'}],
+  6:[{name:'Rath Yatra',emoji:'🏕️',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Rath_Yatra_2007_Puri.jpg/640px-Rath_Yatra_2007_Puri.jpg'},{name:'Eid al-Adha',emoji:'🐑',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Eid_Mubarak_Fireworks.jpg/640px-Eid_Mubarak_Fireworks.jpg'}],
+  7:[{name:'Guru Purnima',emoji:'🧘',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Purnima.jpg/480px-Purnima.jpg'},{name:'Muharram',emoji:'☪️',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/Ashura_procession_in_Nabatieh.jpg/640px-Ashura_procession_in_Nabatieh.jpg'}],
+  8:[{name:'Raksha Bandhan',emoji:'🪢',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/17/Raksha-bandhan.jpg/640px-Raksha-bandhan.jpg'},{name:'Independence Day',emoji:'🇮🇳',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Flag_of_India.svg/640px-Flag_of_India.svg.png'},{name:'Janmashtami',emoji:'🦚',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/Lord_Krishna_by_Raja_Ravi_Varma.jpg/480px-Lord_Krishna_by_Raja_Ravi_Varma.jpg'}],
+  9:[{name:'Ganesh Chaturthi',emoji:'🐘',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Ganesh_Puja_at_Aarey_Colony.jpg/640px-Ganesh_Puja_at_Aarey_Colony.jpg'},{name:'Navratri',emoji:'💃',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Garba_dance_Gujarat.jpg/640px-Garba_dance_Gujarat.jpg'}],
+  10:[{name:'Dussehra',emoji:'🏹',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Dussehra_celebration.jpg/640px-Dussehra_celebration.jpg'},{name:'Navratri / Durga Puja',emoji:'🙏',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Durga_idol.jpg/480px-Durga_idol.jpg'}],
+  11:[{name:'Diwali',emoji:'🪔',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Diwali_2012_-_Kolkata%2C_India.jpg/640px-Diwali_2012_-_Kolkata%2C_India.jpg'},{name:'Bhai Dooj',emoji:'🎁',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Diwali_2012_-_Kolkata%2C_India.jpg/640px-Diwali_2012_-_Kolkata%2C_India.jpg'}],
+  12:[{name:'Christmas',emoji:'🎄',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Father_Christmas%2C_Santa_Claus.jpg/480px-Father_Christmas%2C_Santa_Claus.jpg'},{name:'New Year\'s Eve',emoji:'🎆',img:'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Sydney_Harbour_Bridge_New_Year_Fireworks.jpg/640px-Sydney_Harbour_Bridge_New_Year_Fireworks.jpg'}],
+};
+
+let selectedFestival=null;
+
+function getCurrentFestivals(){
+  const m=new Date().getMonth()+1;
+  return FESTIVAL_MONTHS[m]||[];
+}
+
+function renderWA(){
+  waTpl=WA_TEMPLATES[0].text;
+  // Festival section — show this month's festivals
+  const festivals=getCurrentFestivals();
+  const monthNames=['','January','February','March','April','May','June','July','August','September','October','November','December'];
+  const curMonth=monthNames[new Date().getMonth()+1];
+  let festHtml='';
+  if(festivals.length){
+    festHtml=`<div style="margin-bottom:14px;background:linear-gradient(135deg,#fff7ed,#fef3c7);border:1.5px solid #fed7aa;border-radius:var(--rad);padding:14px">
+      <div style="font-size:12px;font-weight:800;color:#92400e;margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">🎊 ${curMonth} Festivals — Greeting Cards</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${festivals.map((f,i)=>`
+          <div class="fest-card${i===0&&!selectedFestival?' fest-sel':''}" onclick="selectFestival('${f.name}','${f.emoji}','${f.img}',this)" style="display:flex;align-items:center;gap:12px;padding:10px 12px;background:#fff;border-radius:10px;border:2px solid ${i===0&&!selectedFestival?'var(--p)':'var(--bd)'};cursor:pointer;transition:var(--tr)">
+            <img src="${f.img}" style="width:52px;height:52px;object-fit:cover;border-radius:8px;flex-shrink:0" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><rect fill=%22%23f3f4f6%22 width=%2252%22 height=%2252%22 rx=%228%22/><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2226%22>${f.emoji}</text></svg>'">
+            <div style="flex:1"><div style="font-size:13px;font-weight:800;color:var(--dk)">${f.emoji} ${f.name}</div><div style="font-size:11px;color:var(--tx3);margin-top:2px">Festival greeting with image</div></div>
+            <div style="font-size:18px">${i===0&&!selectedFestival?'✅':'⭕'}</div>
+          </div>`).join('')}
+      </div>
+      <div id="fest-msg-preview" style="margin-top:10px;font-size:11px;color:var(--tx3);background:#fff;border-radius:8px;padding:8px 12px;border:1px solid var(--bd)">
+        Message: <em id="fest-msg-txt">${getFestivalMsg(festivals[0]?.name,festivals[0]?.emoji)}</em>
+      </div>
+    </div>`;
+    // Auto-select first festival
+    if(!selectedFestival&&festivals.length){selectedFestival=festivals[0];waTpl=getFestivalMsg(festivals[0].name,festivals[0].emoji);}
+  }
+  document.getElementById('wa-templates').innerHTML=festHtml+WA_TEMPLATES.map((t,i)=>`<div class="wa-tpl" onclick="selectWATpl(this,'${t.id}')"><div class="wa-tpl-h">${t.label}</div><div class="wa-tpl-p">${t.text.slice(0,80)}...</div></div>`).join('');
+  renderWALeads();
+  document.getElementById('wa-sel-count').textContent='0 selected';
+  waSelLeads=new Set();
+}
+
+function getFestivalMsg(name,emoji){
+  return `${emoji} *Happy ${name}!* ${emoji}\n\nDear {name},\n\nWarm ${name} greetings from *Jay Dwarkadhish Real Estate*! 🏡\n\nWishing you and your family happiness, peace and prosperity on this auspicious occasion.\n\n✨ May this ${name} bring new opportunities and your dream home closer to reality!\n\nBest Wishes,\n*Jay Dwarkadhish Real Estate*\n📞 +91 9998492878`;
+}
+
+function selectFestival(name,emoji,img,el){
+  selectedFestival={name,emoji,img};
+  waTpl=getFestivalMsg(name,emoji);
+  document.querySelectorAll('.fest-card').forEach(c=>{c.style.borderColor='var(--bd)';c.querySelector('div:last-child').textContent='⭕';});
+  el.style.borderColor='var(--p)';el.querySelector('div:last-child').textContent='✅';
+  document.getElementById('fest-msg-txt').textContent=getFestivalMsg(name,emoji).replace(/\*/g,'').replace(/\n/g,' ').slice(0,100)+'...';
+  // Deselect regular templates
+  document.querySelectorAll('.wa-tpl').forEach(e=>e.classList.remove('sel'));
+}
+
+function selectWATpl(el,id){
+  document.querySelectorAll('.wa-tpl').forEach(e=>e.classList.remove('sel'));
+  el.classList.add('sel');
+  waTpl=WA_TEMPLATES.find(t=>t.id===id)?.text||'';
+  selectedFestival=null;
+  // Deselect festival cards
+  document.querySelectorAll('.fest-card').forEach(c=>{c.style.borderColor='var(--bd)';const ic=c.querySelector('div:last-child');if(ic)ic.textContent='⭕';});
+}
+
+function renderWALeads(){
+  const q=(document.getElementById('wa-s')?.value||'').toLowerCase();
+  const fs=document.getElementById('wa-st')?.value||'';
+  let list=AL.filter(l=>{
+    if(CU&&CU.type!=='admin'&&l.assign!==CU.email)return false;
+    if(l.status==='Closed'||l.status==='Lost')return false;
+    if(fs&&l.status!==fs)return false;
+    if(q&&!(l.name||'').toLowerCase().includes(q)&&!(l.phone||'').includes(q))return false;
+    return true;
+  });
+  const container=document.getElementById('wa-lead-list');
+  container.innerHTML=list.map(l=>`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--bd);cursor:pointer" onclick="toggleWASel('${l.id}',this)" id="wa-row-${l.id}">
+    <input type="checkbox" id="wa-chk-${l.id}" ${waSelLeads.has(l.id)?'checked':''} style="width:16px;height:16px;cursor:pointer;accent-color:var(--p)">
+    <div style="flex:1"><div style="font-size:13px;font-weight:700;color:var(--dk)">${l.name}</div><div style="font-size:11px;color:var(--tx3)">${l.phone} · <span class="sp ${scls(l.status)}">${l.status}</span></div></div>
+  </div>`).join('')||'<div style="padding:2rem;text-align:center;color:var(--tx3);font-size:13px">No leads found.</div>';
+  document.getElementById('wa-sel-count').textContent=`${waSelLeads.size} selected`;
+}
+
+function toggleWASel(id,row){
+  if(waSelLeads.has(id))waSelLeads.delete(id);else waSelLeads.add(id);
+  const chk=document.getElementById('wa-chk-'+id);if(chk)chk.checked=waSelLeads.has(id);
+  document.getElementById('wa-sel-count').textContent=`${waSelLeads.size} selected`;
+}
+
+function selectAllWA(){
+  const checkboxes=document.querySelectorAll('#wa-lead-list input[type=checkbox]');
+  const allChecked=[...checkboxes].every(c=>c.checked);
+  checkboxes.forEach(c=>{
+    const id=c.id.replace('wa-chk-','');
+    if(allChecked)waSelLeads.delete(id);else waSelLeads.add(id);
+    c.checked=!allChecked;
+  });
+  document.getElementById('wa-sel-count').textContent=`${waSelLeads.size} selected`;
+}
+
+function sendWABulk(){
+  if(!waSelLeads.size){alert('Please select at least one lead.');return;}
+  if(!waTpl){alert('Please select a message template.');return;}
+  const leads=AL.filter(l=>waSelLeads.has(l.id));
+  if(leads.length===1){
+    const l=leads[0];waReminder(l.id);
+  }else{
+    if(!confirm(`Send WhatsApp to ${leads.length} leads?`))return;
+    leads.forEach((l,i)=>{
+      setTimeout(()=>{
+        let phone=(l.phone||'').replace(/\D/g,'');
+        if(!phone)return;
+        if(phone.length===10)phone='91'+phone;
+        const msg=waTpl.replace('{name}',l.name);
+        window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank');
+      },i*1500);
+    });
+  }
+}
+
+/* ---- REPORTS ---- */
+function renderReports(){
+  const tot=AL.length,cl=AL.filter(l=>l.status==='Closed').length,conv=tot?Math.round(cl/tot*100):0;
+  document.getElementById('rep-stats').innerHTML=`
+    <div class="sc c-b"><div class="sc-ico">📋</div><div class="sc-v">${tot}</div><div class="sc-l">Total Leads</div></div>
+    <div class="sc c-g"><div class="sc-ico">✅</div><div class="sc-v">${cl}</div><div class="sc-l">Total Closed</div></div>
+    <div class="sc c-pu"><div class="sc-ico">📊</div><div class="sc-v">${conv}%</div><div class="sc-l">Conversion</div></div>
+    <div class="sc c-r"><div class="sc-ico">❌</div><div class="sc-v">${AL.filter(l=>l.status==='Lost').length}</div><div class="sc-l">Lost</div></div>`;
+  const srcs=['Magicbricks','99acres','Housing','JD Website','Reference','Walk-in'];
+  const sColors=['#ea580c','#dc2626','#0891b2','#4f46e5','#059669','#7c3aed'];
+  const stages=['New','Active','Warm','Follow Up','Site Visit','Call Not Picked','Booking Done','Closed','Lost'];
+  const stC=['#4f46e5','#059669','#ea580c','#d946ef','#f59e0b','#7c3aed','#f59e0b','#059669','#dc2626'];
+  const stIco=['🆕','🔄','🔥','📞','👀','🤝','🏷️','✅','❌'];
+  document.getElementById('rep-charts').innerHTML=`
+    <div class="rc"><h4>📡 Leads by Source</h4>${srcs.map((s,i)=>{const cnt=AL.filter(l=>l.source===s).length;const pct=tot?Math.round(cnt/tot*100):0;return`<div class="br"><div class="br-l">${s}</div><div class="br-t"><div class="br-f" style="width:${pct}%;background:${sColors[i]}"></div></div><div class="br-v">${cnt}</div></div>`;}).join('')}</div>
+    <div class="rc"><h4>🔄 Pipeline Status</h4>${stages.map((s,i)=>{const cnt=AL.filter(l=>l.status===s).length;const pct=tot?Math.round(cnt/tot*100):0;return`<div class="fs2"><div class="fs2-ic" style="background:${stC[i]}22">${stIco[i]}</div><div><div class="fs2-l">${s}</div><div class="fs2-s">${pct}% of total</div></div><div class="fs2-c" style="color:${stC[i]}">${cnt}</div></div>`;}).join('')}</div>`;
+  document.getElementById('ap-body').innerHTML=AU.map(u=>{
+    const uL=AL.filter(l=>l.assign===u.email),uT=uL.length,uA=uL.filter(l=>l.status==='Active').length,uC=uL.filter(l=>l.status==='Closed').length,uLs=uL.filter(l=>l.status==='Lost').length,cv=uT?Math.round(uC/uT*100):0;
+    return `<tr><td><strong>${u.name}</strong></td><td>${uT}</td><td>${uA}</td><td style="color:var(--g);font-weight:700">${uC}</td><td style="color:var(--r)">${uLs}</td><td><span style="font-weight:700;color:${cv>=50?'var(--g)':cv>=20?'var(--o)':'var(--r)'}">${cv}%</span></td></tr>`;
+  }).join('')||'<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--tx3)">No data.</td></tr>';
+}
+
+/* ---- TEAM ---- */
+function renderTeam(){
+  document.getElementById('team-grid').innerHTML=AU.map(u=>{
+    const uL=AL.filter(l=>l.assign===u.email),cl=uL.filter(l=>l.status==='Closed').length,act=uL.filter(l=>l.status!=='Closed'&&l.status!=='Lost').length,cv=uL.length?Math.round(cl/uL.length*100):0;
+    const avHtml=u.avatar?`<img src="${u.avatar}" style="width:100%;height:100%;object-fit:cover">`:`<span>${ini(u.name)}</span>`;
+    return `<div class="tc"><div class="tc-av" style="background:${u.avatar?'transparent':col(u.email)}">${avHtml}</div><div class="tc-nm">${u.name}</div><div class="tc-role">${u.role||'Agent'}</div>${u.type==='admin'?'<span class="admbdg">ADMIN</span><br><br>':''}<hr class="tc-div"><div class="tc-s"><span>Total</span><span class="tc-sv">${uL.length}</span></div><div class="tc-s"><span>Active</span><span class="tc-sv">${act}</span></div><div class="tc-s"><span>Closed</span><span class="tc-sv" style="color:var(--g)">${cl}</span></div><div class="tc-s"><span>Conv%</span><span class="tc-sv">${cv}%</span></div></div>`;
+  }).join('');
+}
+
+/* ---- ADMIN ---- */
+function admTab(tab,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.getElementById('adm-members').style.display=tab==='members'?'block':'none';document.getElementById('adm-backup').style.display=tab==='backup'?'block':'none';if(tab==='backup'){loadGDriveEmail();loadEjsEmail();}}
+function renderAdmin(){
+  document.getElementById('mem-body').innerHTML=AU.map(u=>`<tr>
+    <td><strong>${u.name}</strong></td>
+    <td style="font-size:12px;color:var(--tx2)">${u.email}</td>
+    <td>${u.role||'—'}</td>
+    <td><span class="admbdg" style="${u.type!=='admin'?'background:var(--g)':''}">${u.type==='admin'?'Admin':'Agent'}</span></td>
+    <td><button class="ia" onclick="editMemF('${u.email}')">✏️</button><button class="ia" onclick="openRst('${u.email}')">🔑</button>${u.email!==CU?.email?`<button class="ia" onclick="delMem('${u.email}')">🗑️</button>`:''}</td>
+  </tr>`).join('');
+}
+
+/* ---- EDIT LEAD ---- */
+function openEdit(id){
+  const l=AL.find(x=>x.id===id);if(!l)return;editId=id;
+  document.getElementById('edit-title').textContent=l.name;
+  document.getElementById('edit-sub').textContent=`${l.phone} · ${l.source||'—'} · ${l.bhk||''}`;
+  populateDDs();
+  document.getElementById('e-assign').value=l.assign||CU?.email||'';
+  document.getElementById('e-status').value=l.status||'New';
+  document.getElementById('e-dr').value=l.dead_reason||'';
+  document.getElementById('e-ds').value=l.dead_sub||'';
+  document.getElementById('e-nd').value=l.next_call||'';
+  document.getElementById('e-nt').value=l.next_time||'';
+  document.getElementById('e-cmt').value='';toggleDead();
+  const log=document.getElementById('e-log');
+  const cmts=l.comments||[];
+  log.innerHTML=cmts.length?cmts.map(c=>`<div class="ce"><span class="ce-by">${uname(c.by)}</span><span class="ce-dt">${c.dt}</span><div class="ce-t">${c.text}</div></div>`).join(''):'<div style="color:var(--tx3);text-align:center;padding:10px;font-size:12px">No comments yet.</div>';
+  log.scrollTop=log.scrollHeight;
+  document.getElementById('edit-ov').classList.add('on');
+}
+function closeEdit(){document.getElementById('edit-ov').classList.remove('on');editId=null;}
+function toggleDead(){document.getElementById('dead-row').style.display=document.getElementById('e-status').value==='Lost'?'grid':'none';}
+async function saveLead(){
+  const btn=document.getElementById('sv-btn');btn.disabled=true;btn.textContent='Saving...';
+  const l=AL.find(x=>x.id===editId);
+  if(!l){btn.disabled=false;btn.textContent='Update Lead';return;}
+  const nc=document.getElementById('e-cmt').value.trim();
+  const comments=[...(l.comments||[])];
+  if(nc)comments.push({by:CU.email,dt:ts(),text:nc});
+  const updated={...l,
+    assign:document.getElementById('e-assign').value||CU.email,
+    status:document.getElementById('e-status').value,
+    dead_reason:document.getElementById('e-dr').value,
+    dead_sub:document.getElementById('e-ds').value,
+    next_call:document.getElementById('e-nd').value,
+    next_time:document.getElementById('e-nt').value,
+    comments
+  };
+  // Build payload - only send fields that exist in Supabase, stringify comments
+  const payload={
+    id:updated.id,
+    assign:updated.assign,
+    status:updated.status,
+    dead_reason:updated.dead_reason||'',
+    dead_sub:updated.dead_sub||'',
+    next_call:updated.next_call||null,
+    next_time:updated.next_time||null,
+    comments:JSON.stringify(updated.comments||[])
+  };
+
+  let saveOk=false;
+  for(let attempt=1;attempt<=3;attempt++){
+    try{
+      // Use UPDATE with eq filter — more reliable than upsert for existing rows
+      const{error}=await sb.from('leads').update(payload).eq('id',updated.id);
+      if(!error){saveOk=true;break;}
+      console.warn(`saveLead attempt ${attempt} failed:`,error.message,error.details||'');
+    }catch(e){console.warn(`saveLead attempt ${attempt} exception:`,e);}
+    if(attempt<3) await new Promise(r=>setTimeout(r,1200));
+  }
+
+  if(saveOk){
+    showSy();
+    const idx=AL.findIndex(x=>x.id===editId);
+    if(idx>-1)AL[idx]=updated;
+    closeEdit();renderEnq();renderDash();checkNotifs();
+  }else{
+    const errToast=document.createElement('div');
+    errToast.style.cssText='position:fixed;bottom:80px;right:20px;background:#dc2626;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(220,38,38,.4)';
+    errToast.textContent='❌ Save failed. Check internet & retry.';
+    document.body.appendChild(errToast);
+    setTimeout(()=>errToast.remove(),6000);
+  }
+  btn.disabled=false;btn.textContent='Update Lead';
+}
+
+/* ---- VIEW LEAD ---- */
+function openView(id){
+  const l=AL.find(x=>x.id===id);if(!l)return;viewId=id;
+  document.getElementById('view-title').textContent=l.name;
+  document.getElementById('view-sub').textContent=`Added ${l.created_at?new Date(l.created_at).toLocaleDateString('en-IN'):''}`;
+  const vimg=document.getElementById('v-img');
+  if(l.property_image){vimg.src=l.property_image;vimg.classList.add('on');}else{vimg.src='';vimg.classList.remove('on');}
+  const phoneNum=l.phone||'';
+  const phoneEl=document.getElementById('v-phone');
+  if(phoneNum){
+    phoneEl.innerHTML=`<a href="tel:${phoneNum}" style="color:var(--p);font-weight:700;text-decoration:none;display:inline-flex;align-items:center;gap:6px" onclick="event.stopPropagation()">📞 ${phoneNum}</a>`;
+  }else{phoneEl.textContent='—';}
+  document.getElementById('v-email').textContent=l.email||'—';
+  document.getElementById('v-source').textContent=l.source||'—';
+  document.getElementById('v-bhk').textContent=l.bhk||'—';
+  document.getElementById('v-budget').textContent=l.budget||'—';
+  document.getElementById('v-area').textContent=l.area||'—';
+  document.getElementById('v-status').innerHTML=`<span class="sp ${scls(l.status)}">${l.status}</span>`;
+  document.getElementById('v-agent').textContent=uname(l.assign);
+  document.getElementById('v-nf').textContent=l.next_call?l.next_call+(l.next_time?' '+fmt12(l.next_time):''):'—';
+  const log=document.getElementById('v-log');
+  const cmts=l.comments||[];
+  log.innerHTML=cmts.length?cmts.map(c=>`<div class="ce"><span class="ce-by">${uname(c.by)}</span><span class="ce-dt">${c.dt}</span><div class="ce-t">${c.text}</div></div>`).join(''):'<div style="color:var(--tx3);text-align:center;padding:10px;font-size:12px">No comments yet.</div>';
+  document.getElementById('view-ov').classList.add('on');
+}
+function closeView(){document.getElementById('view-ov').classList.remove('on');viewId=null;}
+
+/* ---- WHATSAPP REMINDER ---- */
+function waReminder(id){
+  const l=AL.find(x=>x.id===id);if(!l){alert('Lead not found.');return;}
+  let phone=(l.phone||'').replace(/\D/g,'');
+  if(!phone){alert('No mobile number for this lead.');return;}
+  if(phone.length===10)phone='91'+phone;
+  const tpl=waTpl||WA_TEMPLATES[0].text;
+  const fu=l.next_call?` on ${l.next_call}${l.next_time?' at '+fmt12(l.next_time):''}`:' soon';
+  const msg=(tpl.includes('{name}')?tpl.replace('{name}',l.name):`Hi ${l.name}, this is a follow-up reminder from Jay Dwarkadhish Real Estate regarding your enquiry${fu}. Please let us know a good time to talk. Thank you!`);
+  window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`,'_blank');
+}
+
+/* ---- NEW ENQUIRY ---- */
+function openNewEnq(){
+  populateDDs();
+  ['n-nm','n-ph','n-em','n-bgt','n-area','n-cmt','n-nd','n-nt'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('n-src').value='Magicbricks';document.getElementById('n-bhk').value='';
+  document.getElementById('n-ag').value=CU?.email||'';
+  document.getElementById('n-img').value='';newImgData='';
+  const nimg=document.getElementById('n-img-prev');nimg.src='';nimg.classList.remove('on');
+  document.getElementById('new-ov').classList.add('on');
+}
+function closeNew(){document.getElementById('new-ov').classList.remove('on');}
+async function saveNew(){
+  const name=document.getElementById('n-nm').value.trim(),phone=document.getElementById('n-ph').value.trim();
+  if(!name||!phone){alert('Name and mobile are required.');return;}
+  const btn=document.getElementById('sv-new-btn');btn.disabled=true;btn.textContent='Saving...';
+  const cmt=document.getElementById('n-cmt').value.trim();
+  const assignTo=document.getElementById('n-ag').value||CU?.email||'';
+  const lead={id:uid(),name,phone,email:document.getElementById('n-em').value.trim(),source:document.getElementById('n-src').value,bhk:document.getElementById('n-bhk').value,budget:document.getElementById('n-bgt').value.trim(),area:document.getElementById('n-area').value.trim(),assign:assignTo,status:'New',dead_reason:'',dead_sub:'',next_call:document.getElementById('n-nd').value,next_time:document.getElementById('n-nt').value,comments:cmt?[{by:CU.email,dt:ts(),text:cmt}]:[]};
+  const ok=await dbSL(lead);
+  if(ok){AL=[lead,...AL];populateDDs();closeNew();renderEnq();renderDash();checkNotifs();}
+  else{const errToast=document.createElement('div');errToast.style.cssText='position:fixed;bottom:80px;right:20px;background:#dc2626;color:#fff;padding:12px 20px;border-radius:12px;font-size:13px;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(220,38,38,.4)';errToast.textContent='❌ Error saving. Retry karo.';document.body.appendChild(errToast);setTimeout(()=>errToast.remove(),4000);}
+  btn.disabled=false;btn.textContent='Add Enquiry';
+}
+
+/* ---- PROFILE ---- */
+function openProfile(){
+  document.getElementById('pro-nm').value=CU.name;document.getElementById('pro-rl').value=CU.role||'Agent';document.getElementById('pro-em').value=CU.email;
+  document.getElementById('pro-mob').value=CU.mobile||'';
+  ['p-old','p-new','p-cnf'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('p-msg').style.display='none';
+  const localAvatar=localStorage.getItem('jdcrm_avatar_'+CU.email);
+  const avatar=CU.avatar||localAvatar||null;
+  const avHtml=avatar?`<div style="width:84px;height:84px;border-radius:20px;overflow:hidden;margin:0 auto;border:3px solid var(--bd)"><img src="${avatar}" style="width:100%;height:100%;object-fit:cover"></div>`:`<div style="width:84px;height:84px;border-radius:20px;background:${col(CU.email)};color:#fff;font-weight:900;font-size:28px;display:flex;align-items:center;justify-content:center;margin:0 auto">${ini(CU.name)}</div>`;
+  document.getElementById('prof-av').innerHTML=avHtml;
+  document.getElementById('prof-ov').classList.add('on');
+}
+function closeProf(){document.getElementById('prof-ov').classList.remove('on');}
+async function changePw(){
+  const oldEmail=CU.email; // key used to find the existing row, BEFORE any change
+  const newName=document.getElementById('pro-nm').value.trim();
+  const newEmail=document.getElementById('pro-em').value.trim().toLowerCase();
+  const mob=document.getElementById('pro-mob').value.trim();
+
+  if(!newName){showMsg('p-msg','Name cannot be empty.',false);return;}
+  if(!newEmail){showMsg('p-msg','Email cannot be empty.',false);return;}
+
+  const nameChanged=newName!==CU.name;
+  const emailChanged=newEmail!==CU.email;
+  const mobChanged=mob!==(CU.mobile||'');
+
+  if(emailChanged&&AU.find(u=>u.email===newEmail&&u.email!==oldEmail)){
+    showMsg('p-msg','This email is already used by another account.',false);return;
+  }
+
+  // Save Name / Email / Mobile first (always), matching the row by the OLD email
+  if(nameChanged||emailChanged||mobChanged){
+    const updateFields={name:newName,email:newEmail,mobile:mob};
+    const{error}=await sb.from('users').update(updateFields).eq('email',oldEmail);
+    if(error){
+      console.error('profile update error:',error);
+      showMsg('p-msg','❌ Error saving: '+error.message,false);
+      return;
+    }
+    showSy();
+    CU={...CU,name:newName,email:newEmail,mobile:mob};
+    // Keep local user list, header, and session in sync
+    const idx=AU.findIndex(u=>u.email===oldEmail);
+    if(idx>-1) AU[idx]={...AU[idx],name:newName,email:newEmail,mobile:mob};
+    if(emailChanged){
+      const av=localStorage.getItem('jdcrm_avatar_'+oldEmail);
+      if(av){localStorage.setItem('jdcrm_avatar_'+newEmail,av);localStorage.removeItem('jdcrm_avatar_'+oldEmail);}
+      localStorage.setItem('jdcrm_v7',JSON.stringify({email:newEmail,ts:Date.now()}));
+    }
+    document.getElementById('sb-un').textContent=CU.name;
+    setAv(document.getElementById('tb-av'),CU);
+  }
+
+  const old=document.getElementById('p-old').value,nw=document.getElementById('p-new').value.trim(),cnf=document.getElementById('p-cnf').value.trim();
+  if(!old&&!nw&&!cnf){
+    showMsg('p-msg',(nameChanged||emailChanged||mobChanged)?'✅ Profile saved!':'Nothing to save.',(nameChanged||emailChanged||mobChanged));
+    return;
+  }
+  if(!old||!nw||!cnf){showMsg('p-msg','Please fill all password fields.',false);return;}
+  if(CU.password!==old){showMsg('p-msg','Current password incorrect.',false);return;}
+  if(nw.length<6){showMsg('p-msg','Min. 6 characters.',false);return;}
+  if(nw!==cnf){showMsg('p-msg','Passwords do not match.',false);return;}
+  const{error:pwErr}=await sb.from('users').update({password:nw}).eq('email',CU.email);
+  if(!pwErr){CU.password=nw;showMsg('p-msg','✅ Profile & password saved!',true);}
+  else showMsg('p-msg','Error saving password.',false);
+}
+
+/* ---- MEMBERS ---- */
+function openAddMember(){editMem=null;document.getElementById('mem-mo-h').textContent='Add Team Member';['m-nm','m-em','m-pw','m-rl'].forEach(i=>document.getElementById(i).value='');document.getElementById('m-tp').value='agent';document.getElementById('m-msg').style.display='none';document.getElementById('mem-ov').classList.add('on');}
+function editMemF(email){const u=AU.find(x=>x.email===email);if(!u)return;editMem=email;document.getElementById('mem-mo-h').textContent='Edit Member';document.getElementById('m-nm').value=u.name;document.getElementById('m-em').value=u.email;document.getElementById('m-pw').value='';document.getElementById('m-rl').value=u.role||'';document.getElementById('m-tp').value=u.type||'agent';document.getElementById('m-mob').value=u.mobile||'';document.getElementById('m-msg').style.display='none';document.getElementById('mem-ov').classList.add('on');}
+function closeMem(){document.getElementById('mem-ov').classList.remove('on');editMem=null;}
+async function saveMem(){
+  const name=document.getElementById('m-nm').value.trim(),email=document.getElementById('m-em').value.trim().toLowerCase(),pw=document.getElementById('m-pw').value,role=document.getElementById('m-rl').value.trim()||'Agent',type=document.getElementById('m-tp').value,mob=document.getElementById('m-mob').value.trim();
+  if(!name||!email){showMsg('m-msg','Name and email required.',false);return;}
+  if(!editMem&&!pw){showMsg('m-msg','Password required.',false);return;}
+  if(pw&&pw.length<6){showMsg('m-msg','Min. 6 characters.',false);return;}
+  if(AU.find(u=>u.email===email&&u.email!==editMem)){showMsg('m-msg','Email already exists.',false);return;}
+  // Build obj with only safe known columns — avoids "column not found" Supabase errors
+  let obj;
+  if(editMem){
+    const base=AU.find(u=>u.email===editMem)||{};
+    obj={...base,name,email,role,type};
+    if(pw) obj.password=pw;
+    // Only add mobile if column exists in existing user data OR table has it
+    if('mobile' in base || mob) obj.mobile=mob;
+  } else {
+    obj={id:uid(),name,email,password:pw,role,type};
+    if(mob) obj.mobile=mob;
+  }
+  const saveBtn=document.querySelector('#mem-ov .btn-p');
+  if(saveBtn){saveBtn.disabled=true;saveBtn.textContent='Saving...';}
+  const result=await dbSUDebug(obj,editMem||null); // match by OLD email when editing, so changing email doesn't create a duplicate
+  if(saveBtn){saveBtn.disabled=false;saveBtn.textContent='Save Member';}
+  if(result.ok){
+    AU=await dbU();
+    // If the currently logged-in user's own row was just edited from the team list, keep CU/session in sync
+    if(editMem&&CU&&CU.email===editMem){
+      CU={...CU,name,email,role,type,mobile:mob};
+      localStorage.setItem('jdcrm_v7',JSON.stringify({email:CU.email,ts:Date.now()}));
+      document.getElementById('sb-un').textContent=CU.name;
+      setAv(document.getElementById('tb-av'),CU);
+    }
+    closeMem();renderAdmin();populateDDs();
+  }
+  else showMsg('m-msg','❌ '+(result.errMsg||'Error saving. Check internet & retry.'),false);
+}
+async function delMem(email){const u=AU.find(x=>x.email===email);if(!confirm(`Remove ${u?.name||email}?`))return;await dbDU(email);AU=await dbU();renderAdmin();populateDDs();}
+function openRst(email){rstEmail=email;const u=AU.find(x=>x.email===email);document.getElementById('rst-for').textContent='For: '+(u?u.name:email);['r-pw','r-cnf'].forEach(i=>document.getElementById(i).value='');document.getElementById('r-msg').style.display='none';document.getElementById('rst-ov').classList.add('on');}
+function closeRst(){document.getElementById('rst-ov').classList.remove('on');rstEmail=null;}
+async function doRst(){
+  const pw=document.getElementById('r-pw').value.trim(),cnf=document.getElementById('r-cnf').value.trim();
+  if(!pw||!cnf){showMsg('r-msg','Fill both fields.',false);return;}
+  if(pw.length<6){showMsg('r-msg','Min. 6 chars.',false);return;}
+  if(pw!==cnf){showMsg('r-msg','Passwords do not match.',false);return;}
+  const u=AU.find(x=>x.email===rstEmail);if(!u)return;
+  const ok=await dbSU({...u,password:pw});
+  if(ok){showMsg('r-msg','✅ Password reset!',true);setTimeout(closeRst,1500);}
+  else showMsg('r-msg','Error.',false);
+}
+
+/* ---- EXPORT ---- */
+function exportCSV(){
+  if(!AL.length){alert('No leads.');return;}
+  const cols=['Name','Phone','Email','Source','BHK','Budget','Area','Assigned To','Status','Next Follow-up','Time','Lost Reason','Comments'];
+  const rows=AL.map(l=>[l.name,l.phone,l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt} ${uname(c.by)}]: ${c.text}`).join(' | ')].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
+  dlFile('JD_CRM_Leads.csv','\uFEFF'+cols.map(c=>`"${c}"`).join(',')+'\n'+rows.join('\n'),'text/csv;charset=utf-8;');
+}
+function exportExcel(){
+  if(!AL.length){alert('No leads.');return;}
+  try{
+    const headers=['Name','Phone','Email','Source','BHK','Budget','Area','Agent','Status','Next Follow-up Date','Next Follow-up Time','Lost Reason','Comments'];
+    const rows=AL.map(l=>[
+      l.name||'',l.phone||'',l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',
+      uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',
+      l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt} ${uname(c.by)}]: ${c.text}`).join(' | ')
+    ]);
+    const wsData=[headers,...rows];
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet(wsData);
+    // Column widths
+    ws['!cols']=[{wch:22},{wch:14},{wch:24},{wch:14},{wch:8},{wch:12},{wch:14},{wch:16},{wch:12},{wch:16},{wch:14},{wch:18},{wch:50}];
+    XLSX.utils.book_append_sheet(wb,ws,'Leads');
+    XLSX.writeFile(wb,'JD_CRM_Leads_'+new Date().toISOString().slice(0,10)+'.xlsx');
+  }catch(e){
+    alert('Excel export error: '+e.message+'\nTry CSV export instead.');
+    console.error('exportExcel error:',e);
+  }
+}
+// ---- GOOGLE DRIVE BACKUP ----
+const GDRIVE_CLIENT_ID=''; // Admin: Fill in your Google OAuth Client ID here
+const GDRIVE_SCOPES='https://www.googleapis.com/auth/drive.file';
+let gdriveToken=null;
+
+function saveGDriveEmail(){
+  const em=document.getElementById('gdrive-email').value.trim();
+  if(!em||!em.includes('@')){alert('Valid Gmail ID enter karo.');return;}
+  localStorage.setItem('jdcrm_gdrive_email',em);
+  document.getElementById('gdrive-saved-email').textContent='✅ Saved: '+em;
+  setTimeout(()=>{document.getElementById('gdrive-saved-email').textContent='';},3000);
+}
+
+function loadGDriveEmail(){
+  const em=localStorage.getItem('jdcrm_gdrive_email')||'';
+  if(em){
+    document.getElementById('gdrive-email').value=em;
+    document.getElementById('gdrive-saved-email').textContent='Saved: '+em;
+  }
+}
+
+async function gDriveBackup(){
+  const statusEl=document.getElementById('gdrive-status');
+  const savedEmail=localStorage.getItem('jdcrm_gdrive_email')||'';
+  if(!savedEmail){alert('Pehle Gmail ID save karo.');return;}
+  if(!AL.length){alert('No leads to backup.');return;}
+  statusEl.style.color='var(--p)';statusEl.textContent='🔄 Connecting to Google Drive...';
+  try{
+    // Build Excel file using SheetJS
+    const headers=['Name','Phone','Email','Source','BHK','Budget','Area','Agent','Status','Next Follow-up Date','Next Follow-up Time','Lost Reason','Comments'];
+    const rows=AL.map(l=>[l.name||'',l.phone||'',l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt} ${uname(c.by)}]: ${c.text}`).join(' | ')]);
+    const wsData=[headers,...rows];
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet(wsData);
+    ws['!cols']=[{wch:22},{wch:14},{wch:24},{wch:14},{wch:8},{wch:12},{wch:14},{wch:16},{wch:12},{wch:16},{wch:14},{wch:18},{wch:50}];
+    XLSX.utils.book_append_sheet(wb,ws,'Leads');
+    const xlsxBlob=new Blob([XLSX.write(wb,{bookType:'xlsx',type:'array'})],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const fileName='JD_CRM_Leads_'+new Date().toISOString().slice(0,10)+'.xlsx';
+
+    if(!GDRIVE_CLIENT_ID){
+      // Fallback: download locally and open Drive
+      statusEl.style.color='var(--a)';
+      statusEl.textContent='⚠️ OAuth Client ID not configured. Downloading locally...';
+      const a=document.createElement('a');a.href=URL.createObjectURL(xlsxBlob);a.download=fileName;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},200);
+      setTimeout(()=>{
+        statusEl.textContent='✅ File downloaded! Ab manually Google Drive pe upload karo.';
+        statusEl.style.color='var(--g)';
+        window.open('https://drive.google.com/drive/u/0/my-drive','_blank');
+      },500);
+      return;
+    }
+    // OAuth flow
+    statusEl.textContent='🔐 Google sign-in window opening...';
+    const token=await getGoogleToken();
+    if(!token){statusEl.style.color='var(--r)';statusEl.textContent='❌ Google sign-in failed.';return;}
+    statusEl.textContent='📤 Uploading to Drive...';
+    // Upload to Google Drive
+    const meta=JSON.stringify({name:fileName,mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const form=new FormData();
+    form.append('metadata',new Blob([meta],{type:'application/json'}));
+    form.append('file',xlsxBlob);
+    const res=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{Authorization:'Bearer '+token},body:form});
+    if(res.ok){
+      const data=await res.json();
+      statusEl.style.color='var(--g)';statusEl.textContent='✅ Backup uploaded to Google Drive! ('+savedEmail+')';
+    }else{
+      const err=await res.json();
+      statusEl.style.color='var(--r)';statusEl.textContent='❌ Upload failed: '+(err.error?.message||'Unknown error');
+    }
+  }catch(e){
+    statusEl.style.color='var(--r)';statusEl.textContent='❌ Error: '+e.message;
+    console.error('gDriveBackup error:',e);
+  }
+}
+
+function getGoogleToken(){
+  return new Promise((resolve)=>{
+    const w=window.open(`https://accounts.google.com/o/oauth2/v2/auth?client_id=${GDRIVE_CLIENT_ID}&redirect_uri=${encodeURIComponent(location.origin+location.pathname)}&response_type=token&scope=${encodeURIComponent(GDRIVE_SCOPES)}&prompt=select_account`,'_blank','width=500,height=600');
+    const check=setInterval(()=>{
+      try{
+        if(w.closed){clearInterval(check);resolve(null);return;}
+        const hash=w.location.hash;
+        if(hash&&hash.includes('access_token')){
+          clearInterval(check);w.close();
+          const params=new URLSearchParams(hash.substring(1));
+          resolve(params.get('access_token'));
+        }
+      }catch(e){}
+    },500);
+    setTimeout(()=>{clearInterval(check);if(!w.closed)w.close();resolve(null);},120000);
+  });
+}
+
+// Legacy backup (keep for compatibility)
+async function gBackup(){gDriveBackup();}
+
+// ---- SUPABASE STORAGE BACKUP ----
+async function supabaseBackup(){
+  const statusEl=document.getElementById('sb-backup-status');
+  const linksEl=document.getElementById('sb-backup-links');
+  if(!AL.length){alert('No leads to backup.');return;}
+  statusEl.style.color='var(--p)';statusEl.textContent='🔄 Creating Excel file...';
+  linksEl.innerHTML='';
+  try{
+    // Build Excel
+    const headers=['Name','Phone','Email','Source','BHK','Budget','Area','Agent','Status','Next Follow-up Date','Next Follow-up Time','Lost Reason','Comments'];
+    const rows=AL.map(l=>[l.name||'',l.phone||'',l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt} ${uname(c.by)}]: ${c.text}`).join(' | ')]);
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws['!cols']=[{wch:22},{wch:14},{wch:24},{wch:14},{wch:8},{wch:12},{wch:14},{wch:16},{wch:12},{wch:16},{wch:14},{wch:18},{wch:50}];
+    XLSX.utils.book_append_sheet(wb,ws,'Leads');
+    const xlsxData=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const blob=new Blob([xlsxData],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const fileName='backups/JD_CRM_Leads_'+new Date().toISOString().slice(0,19).replace(/:/g,'-')+'.xlsx';
+    statusEl.textContent='📤 Uploading to Supabase Storage...';
+    // Upload to Supabase Storage bucket "crm-backups"
+    const {data,error}=await sb.storage.from('CRM-BACKUP').upload(fileName,blob,{contentType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',upsert:true});
+    if(error){
+      // Bucket may not exist — show helpful message
+      if(error.message&&error.message.includes('Bucket not found')){
+        statusEl.style.color='var(--a)';
+        statusEl.textContent='⚠️ Bucket setup needed! Niche diye steps follow karo.';
+        linksEl.innerHTML=`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;font-size:11px;line-height:1.8;margin-top:6px">
+          <b>Ek baar setup (2 min):</b><br>
+          1. <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--p)">supabase.com/dashboard</a> kholo<br>
+          2. Apna project select karo<br>
+          3. Left menu → <b>Storage</b> → <b>New Bucket</b><br>
+          4. Name: <b>crm-backups</b> → Public ✅ ON karo → Create<br>
+          5. Wapas aao aur phir Backup click karo ✅
+        </div>`;
+      }else{
+        statusEl.style.color='var(--r)';statusEl.textContent='❌ Upload failed: '+error.message;
+      }
+      return;
+    }
+    // Get public URL
+    const {data:urlData}=sb.storage.from('CRM-BACKUP').getPublicUrl(fileName);
+    statusEl.style.color='var(--g)';statusEl.textContent='✅ Backup saved to Supabase Storage!';
+    linksEl.innerHTML=`<a href="${urlData.publicUrl}" download target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--gl);color:var(--g);border:1px solid #a7f3d0;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;text-decoration:none;margin-top:4px">⬇️ Download Backup File</a>`;
+  }catch(e){
+    statusEl.style.color='var(--r)';statusEl.textContent='❌ Error: '+e.message;
+    console.error('supabaseBackup error:',e);
+  }
+}
+
+// ---- EMAILJS BACKUP ----
+// EmailJS config — fill these after creating free account at emailjs.com
+const EJS_SERVICE_ID='service_1xia7ik';    // Your EmailJS Service ID
+const EJS_TEMPLATE_ID='template_rq8hnyh'; // Your EmailJS Template ID
+const EJS_PUBLIC_KEY='CefU9D0pBQIOFAV9E';                 // Your EmailJS Public Key
+
+function saveEjsEmail(){
+  const em=document.getElementById('ejs-email').value.trim();
+  if(!em||!em.includes('@')){alert('Valid email ID enter karo.');return;}
+  localStorage.setItem('jdcrm_ejs_email',em);
+  document.getElementById('ejs-saved-email').textContent='✅ Saved: '+em;
+  setTimeout(()=>{document.getElementById('ejs-saved-email').textContent='Saved: '+em;},2000);
+}
+
+function loadEjsEmail(){
+  const em=localStorage.getItem('jdcrm_ejs_email')||'';
+  if(em){document.getElementById('ejs-email').value=em;document.getElementById('ejs-saved-email').textContent='Saved: '+em;}
+}
+
+async function emailBackup(){
+  const statusEl=document.getElementById('ejs-status');
+  const toEmail=localStorage.getItem('jdcrm_ejs_email')||document.getElementById('ejs-email').value.trim();
+  if(!toEmail){alert('Pehle email ID save karo.');return;}
+  if(!AL.length){alert('No leads to backup.');return;}
+
+  // Build CSV for email attachment (EmailJS free plan supports text, not binary attachments)
+  const cols=['Name','Phone','Email','Source','BHK','Budget','Area','Agent','Status','Next Follow-up','Time','Lost Reason','Comments'];
+  const rows=AL.map(l=>[l.name,l.phone,l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt}]: ${c.text}`).join(' | ')].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
+  const csvContent=cols.map(c=>`"${c}"`).join(',')+'\n'+rows.join('\n');
+  const totalLeads=AL.length;
+  const today=new Date().toLocaleDateString('en-IN');
+
+  if(!EJS_PUBLIC_KEY){
+    // Show setup instructions
+    statusEl.style.color='var(--a)';
+    statusEl.textContent='⚠️ EmailJS setup needed!';
+    document.getElementById('ejs-status').insertAdjacentHTML('afterend',`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;font-size:11px;line-height:1.9;margin-top:6px">
+      <b>Free setup (5 min):</b><br>
+      1. <a href="https://www.emailjs.com" target="_blank" style="color:var(--p)">emailjs.com</a> → Free account banao<br>
+      2. <b>Email Services</b> → Gmail add karo → <b>Service ID</b> copy karo<br>
+      3. <b>Email Templates</b> → New Template → variables rakho:<br>
+      &nbsp;&nbsp;<code>{{to_email}}</code>, <code>{{total_leads}}</code>, <code>{{date}}</code>, <code>{{csv_data}}</code><br>
+      4. <b>Account → Public Key</b> copy karo<br>
+      5. CRM file mein yeh 3 lines update karo:<br>
+      &nbsp;&nbsp;<code>EJS_SERVICE_ID='your_service_id'</code><br>
+      &nbsp;&nbsp;<code>EJS_TEMPLATE_ID='your_template_id'</code><br>
+      &nbsp;&nbsp;<code>EJS_PUBLIC_KEY='your_public_key'</code>
+    </div>`);
+    return;
+  }
+
+  statusEl.style.color='var(--p)';statusEl.textContent='📧 Sending email...';
+  try{
+    emailjs.init(EJS_PUBLIC_KEY);
+    const result=await emailjs.send(EJS_SERVICE_ID,EJS_TEMPLATE_ID,{
+      to_email:toEmail,
+      total_leads:totalLeads,
+      date:today,
+      csv_data:csvContent.slice(0,40000) // EmailJS free limit ~50KB
+    });
+    if(result.status===200){
+      statusEl.style.color='var(--g)';statusEl.textContent=`✅ Backup email sent to ${toEmail}!`;
+    }else{
+      statusEl.style.color='var(--r)';statusEl.textContent='❌ Email send failed. Retry karo.';
+    }
+  }catch(e){
+    statusEl.style.color='var(--r)';statusEl.textContent='❌ Error: '+e.message;
+    console.error('emailBackup error:',e);
+  }
+}
+function dlFile(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},200);}
+
+// ---- v8 NEW FEATURES ----
+
+// 1. LEAD SCORE: simple scoring based on status + follow-up freshness
+function leadScore(l){
+  let s=0;
+  const scores={'New':10,'Active':30,'Warm':50,'Follow Up':40,'Site Visit':70,'Call Not Picked':85,'Closed':100,'Lost':0};
+  s+=scores[l.status]||10;
+  if(l.next_call){const diff=(new Date(l.next_call)-new Date())/86400000;if(diff>=0&&diff<=3)s+=15;else if(diff<0)s-=10;}
+  if(l.comments&&l.comments.length>2)s+=10;
+  return Math.min(100,Math.max(0,s));
+}
+function scoreColor(s){return s>=70?'var(--g)':s>=40?'var(--o)':'var(--r)';}
+function scoreBadge(l){const s=leadScore(l);return`<span style="font-size:10px;font-weight:800;color:${scoreColor(s)};background:${scoreColor(s)}15;padding:2px 7px;border-radius:8px">${s}%</span>`;}
+
+// 2. QUICK STATUS CHANGE inline in table (no modal needed)
+async function quickStatus(id,newStatus){
+  const l=AL.find(x=>x.id===id);if(!l)return;
+  const updated={...l,status:newStatus};
+  const ok=await dbSL(updated);
+  if(ok){const idx=AL.findIndex(x=>x.id===id);if(idx>-1)AL[idx]=updated;renderEnq();renderDash();}
+}
+
+// 3. ESC KEY (keyboard shortcuts removed)
+document.addEventListener('keydown',e=>{
+  if(!CU)return;
+  if(e.key==='Escape'){
+    ['edit-ov','new-ov','view-ov','prof-ov','mem-ov','rst-ov','prop-ov'].forEach(id=>{
+      const el=document.getElementById(id);if(el&&el.classList.contains('on'))el.classList.remove('on');
+    });
+  }
+});
+
+// 4. ONLINE/OFFLINE indicator
+window.addEventListener('online',()=>{showNB('✅ Back online!');setTimeout(()=>{schedRT();},500);});
+window.addEventListener('offline',()=>{showNB('⚠️ You are offline. Changes will sync when reconnected.');});
+
+// Modal overlay click-to-close
+['edit-ov','new-ov','view-ov','prof-ov','mem-ov','rst-ov','prop-ov'].forEach(id=>{
+  const el=document.getElementById(id);if(el)el.addEventListener('click',e=>{if(e.target===e.currentTarget)el.classList.remove('on');});
+});
+
+// ===== EMERGENCY LOADER BYPASS =====
+// Sirf tab fire karo jab session check bhi fail ho jaaye (network completely dead)
+(function(){
+  var _emergencyTimer = setTimeout(function(){
+    var ld = document.getElementById('ld');
+    var login = document.getElementById('login');
+    var app = document.getElementById('app');
+    // Only show login if app is NOT already visible
+    if(ld && !ld.classList.contains('gone')){
+      ld.classList.add('gone');
+      if(app && app.style.display !== 'block'){
+        if(login && !login.classList.contains('show')){
+          login.classList.add('show');
+        }
+      }
+    }
+  }, 4000);
+  window._clearEmergency = function(){ clearTimeout(_emergencyTimer); };
+})();
+
+async function initApp(){
+  // STEP 1: Session check karo INSTANTLY from localStorage — Supabase ka wait mat karo
+  let sessEmail=null;
+  try{
+    const raw=localStorage.getItem('jdcrm_v7');
+    if(raw){
+      const s=JSON.parse(raw);
+      if(s&&s.email&&s.ts&&(Date.now()-s.ts)<7*24*60*60*1000) sessEmail=s.email;
+      else localStorage.removeItem('jdcrm_v7');
+    }
+  }catch(e){localStorage.removeItem('jdcrm_v7');}
+
+  // STEP 2: Agar session hai to login screen skip karo, app dikhao with cached/empty data
+  if(sessEmail){
+    // App turant show karo — Supabase data baad mein load hoga background mein
+    CU={email:sessEmail,name:sessEmail.split('@')[0],type:'agent',role:'Agent'};
+    document.getElementById('login').classList.remove('show');
+    document.getElementById('app').style.display='block';
+    document.getElementById('sb-un').textContent='Loading...';
+    document.getElementById('tb-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+    document.getElementById('ni-admin').style.display='none';
+    populateDDs();
+    pg('dashboard',document.getElementById('ni-dashboard'));
+    document.getElementById('ld').classList.add('gone');stopLdMessages();if(window._clearEmergency)window._clearEmergency();
+
+    // Background mein actual data load karo with timeout
+    loadWithTimeout().then(({users,leads})=>{
+      // Only update if we actually got data back
+      if(users && users.length > 0) AU=users;
+      if(leads) AL=leads;
+      const realUser=AU.find(u=>u.email===sessEmail);
+      if(!realUser){
+        // Agar users empty hain (network fail) to logout mat karo — session valid rakho
+        if(AU.length === 0){
+          console.warn('Users not loaded (network?), keeping session alive');
+          updateGreeting();startQuoteRotation();
+          refreshPg();
+          return;
+        }
+        // User genuinely nahi mila DB mein — logout
+        doLogout();return;
+      }
+      CU=realUser;
+      localStorage.setItem('jdcrm_v7',JSON.stringify({email:realUser.email,ts:Date.now()}));
+      setAv(document.getElementById('sb-av'),CU);
+      setAv(document.getElementById('tb-av'),CU);
+      document.getElementById('sb-un').textContent=CU.name;
+      document.getElementById('sb-ur').textContent=CU.role||'Agent';
+      document.getElementById('ni-admin').style.display=CU.type==='admin'?'flex':'none';
+      updateGreeting();startQuoteRotation();
+      populateDDs();
+      refreshPg();
+      checkNotifs();
+      setupRT();
+    }).catch(e=>{
+      console.error('Background load failed, keeping session alive:',e);
+      // Network fail — user app mein hi rahega, session valid
+      updateGreeting();startQuoteRotation();
+    });
+    return;
+  }
+
+  // STEP 3: Koi session nahi — login page dikhao, Supabase prefetch start karo background mein
+  document.getElementById('ld').classList.add('gone');stopLdMessages();if(window._clearEmergency)window._clearEmergency();
+  document.getElementById('login').classList.add('show');
+  // Background mein users prefetch karo taaki login fast ho
+  dbU().then(u=>{AU=u;}).catch(()=>{});
+}
+
+// Timeout wrapper — agar Supabase 8 sec mein jawab nahi deta to error throw karo
+function withTimeout(promise, ms=5000){
+  return Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),ms))
+  ]);
+}
+
+async function loadWithTimeout(){
+  try{
+    const [users,leads]=await Promise.all([
+      withTimeout(dbU(),5000),
+      withTimeout(dbL(),5000)
+    ]);
+    return {users,leads};
+  }catch(e){
+    console.warn('Load timeout, retrying once...',e);
+    try{
+      const [users,leads]=await Promise.all([dbU(),dbL()]);
+      return {users,leads};
+    }catch(e2){
+      return {users:AU||[],leads:AL||[]};
+    }
+  }
+}
+// Safe initApp call — agar Supabase JS load nahi hua to bhi login dikhao
+try{
+  if(typeof supabase !== 'undefined'){
+    initApp();
+  } else {
+    // Supabase CDN load nahi hua — seedha login dikhao
+    setTimeout(function(){
+      document.getElementById('ld').classList.add('gone');
+      stopLdMessages();
+      document.getElementById('login').classList.add('show');
+    },100);
+  }
+}catch(e){
+  console.error('initApp error:',e);
+  document.getElementById('ld').classList.add('gone');
+  document.getElementById('login').classList.add('show');
+}
+</script>
+</body>
+</html>
