@@ -537,7 +537,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
           </div>
           <div id="cal-mini-grid" style="display:none;"></div>
         </div>
-        <button class="nb-btn" onclick="pg('followups',document.getElementById('ni-followups'))">🔔<span class="nb-dot2" id="nb-dot2">0</span></button>
+        <span class="nb-dot2" id="nb-dot2" style="display:none">0</span>
         <div class="tb-av" id="tb-av" onclick="openProfile()"></div>
       </div>
     </div>
@@ -1399,7 +1399,8 @@ function renderDash(){
   const rw=document.getElementById('d-inq-body');
   // Show only this agent's inquiries (admin sees all), sorted by newest first
   // FIX: use created_at (Supabase timestamp) as primary sort, fallback to id
-  const sorted=[...dashL].sort((a,b)=>{
+  // Lost leads dashboard inquiries mein nahi dikhni chahiye
+  const sorted=[...dashL].filter(l=>l.status!=='Lost').sort((a,b)=>{
     const ta=b.created_at||b.created||b.id||'';
     const tb2=a.created_at||a.created||a.id||'';
     return ta.localeCompare(tb2);
@@ -1465,6 +1466,8 @@ function renderCalendarView(){
   for(let i=0;i<first;i++){html+=`<div></div>`;miniHtml+=`<div></div>`;}
   // Role-based filtering: admin sees all leads, agent sees only their assigned leads
   const calLeads=(CU&&CU.type!=='admin')?AL.filter(l=>l.assign===CU.email):AL;
+  // Total leads count for mini info (all statuses)
+  const totalLeadsCount=calLeads.length;
   for(let d=1;d<=total;d++){
     const dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
     const cnt=calLeads.filter(l=>l.next_call===dateStr&&l.status!=='Closed'&&l.status!=='Lost').length;
@@ -1493,7 +1496,7 @@ function renderCalendarView(){
   const miniGrid=document.getElementById('cal-mini-grid');
   if(miniGrid)miniGrid.innerHTML=miniHtml;
   const miniInfo=document.getElementById('cal-mini-info');
-  if(miniInfo)miniInfo.textContent=`${monthFuCount} follow-up${monthFuCount!==1?'s':''} this month`;
+  if(miniInfo)miniInfo.textContent=`${totalLeadsCount} total lead${totalLeadsCount!==1?'s':''}`;
 }
 
 function calDayClick(dateStr,label){
@@ -1521,6 +1524,8 @@ function renderEnq(){
   const fs=document.getElementById('eq-st').value,fsrc=document.getElementById('eq-src').value,fa=document.getElementById('eq-ag').value;
   let list=AL.filter(l=>{
     if(CU&&CU.type!=='admin'&&l.assign!==CU.email)return false;
+    // Lost leads: sirf tab dikhao jab explicitly 'Lost' filter select ho
+    if(!fs&&l.status==='Lost')return false;
     if(fs&&l.status!==fs)return false;
     if(fsrc&&l.source!==fsrc)return false;
     if(fa&&l.assign!==fa)return false;
