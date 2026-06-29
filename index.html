@@ -507,12 +507,12 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
       <div class="tb-l">
         <button class="hbg" onclick="toggleSB()"><span></span><span></span><span></span></button>
         <!-- LEFT - Hello greeting + motivational quote -->
-        <div style="display:flex;flex-direction:column;justify-content:center;gap:1px;">
+        <div style="display:flex;flex-direction:column;justify-content:center;gap:5px;">
           <div style="display:flex;align-items:center;gap:5px;">
             <span style="font-size:17px;">👋</span>
             <div id="tb-greeting" class="tb-greeting-anim"></div>
           </div>
-          <div id="tb-quote" style="font-size:13px;color:var(--p);font-weight:600;max-width:400px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;animation:quoteFade 1s ease-in-out;"></div>
+          <div id="tb-quote" style="font-size:13px;color:#0a0f1e;font-weight:600;max-width:400px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;animation:quoteFade 1s ease-in-out;"></div>
         </div>
       </div>
       <div class="tb-r">
@@ -576,9 +576,6 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
             </div>
           </div>
         </div>
-
-        <!-- TODAY FOLLOW-UPS PANEL -->
-        <div id="d-pri" style="margin-bottom:12px;"></div>
 
         <!-- INQUIRIES TABLE (below calendar) -->
         <div style="margin-top:8px;">
@@ -1223,21 +1220,36 @@ async function startApp(){
 }
 
 const MOTIVATIONAL_QUOTES=[
-  '🔥 Aaj ka din aapka hai — ek aur deal close karo!',
-  '💪 Har call ek nayi opportunity hai!',
-  '🏆 Champion wahi hota hai jo har "no" ke baad bhi try karta hai!',
-  '⭐ Aapki mehnat aaj zaroor rang laayegi!',
-  '🚀 Chota kadam bhi manzil ki taraf le jaata hai!',
-  '💡 Best agent wahi hai jo sabse zyada follow-up karta hai!',
-  '🎯 Focus karo — aaj ke leads kal ki success hai!',
-  '🌟 Ek satisfied client 10 nayi referrals laata hai!',
-  '💰 Har enquiry mein ek dream home chhupa hai!',
-  '🔑 Persistence hi success ki asli chabi hai!',
-  '📞 Ek aur call — shayad wohi deal ho!',
-  '🏠 Aap sirf ghar nahi bechte, sapne poore karte ho!',
-  '💎 Hard work karo, results zaroor milenge!',
-  '🌈 Aaj ka effort kal ka reward banta hai!',
-  '🎉 Har "haan" ke peeche kai "na" hote hain — rukna mat!',
+  {e:'🔥',t:'Aaj ka din aapka hai — ek aur deal close karo!'},
+  {e:'💪',t:'Har call ek nayi opportunity hai!'},
+  {e:'🏆',t:'Champion wahi hota hai jo har "no" ke baad bhi try karta hai!'},
+  {e:'⭐',t:'Aapki mehnat aaj zaroor rang laayegi!'},
+  {e:'🚀',t:'Chota kadam bhi manzil ki taraf le jaata hai!'},
+  {e:'💡',t:'Best agent wahi hai jo sabse zyada follow-up karta hai!'},
+  {e:'🎯',t:'Focus karo — aaj ke leads kal ki success hai!'},
+  {e:'🌟',t:'Ek satisfied client 10 nayi referrals laata hai!'},
+  {e:'💰',t:'Har enquiry mein ek dream home chhupa hai!'},
+  {e:'🔑',t:'Persistence hi success ki asli chabi hai!'},
+  {e:'📞',t:'Ek aur call — shayad wohi deal ho!'},
+  {e:'🏠',t:'Aap sirf ghar nahi bechte, sapne poore karte ho!'},
+  {e:'💎',t:'Hard work karo, results zaroor milenge!'},
+  {e:'🌈',t:'Aaj ka effort kal ka reward banta hai!'},
+  {e:'🎉',t:'Har "haan" ke peeche kai "na" hote hain — rukna mat!'},
+  {e:'🌅',t:'Subah ka pehla kadam hi bada hota hai — shuru karo!'},
+  {e:'🤝',t:'Ek rishta banao, ek ghar becho — yahi hai success ka formula!'},
+  {e:'📲',t:'Har missed call ek missed deal hai — turant call back karo!'},
+  {e:'🧠',t:'Smart agent wahi jo har client ki zaroorat samjhe!'},
+  {e:'⚡',t:'Speed matters — jaldi follow-up karo, deal pakdo!'},
+  {e:'🎊',t:'Aaj ki mehnat kal ki khushi banegi — haaro mat!'},
+  {e:'🧭',t:'Sahi direction mein ek kadam sau galat kadmon se behtar!'},
+  {e:'💫',t:'Jo mann se karta hai, wahi agent ban jaata hai legend!'},
+  {e:'🙌',t:'Client ka trust hi aapki sabse badi achievement hai!'},
+  {e:'🎖️',t:'Har deal ke peeche mehnat, patience aur passion hota hai!'},
+  {e:'🏅',t:'Winners never quit, quitters never win — aap winner ho!'},
+  {e:'📈',t:'Numbers baat karte hain — aaj ke follow-ups kal ke figures bante hain!'},
+  {e:'🌠',t:'Sapne bade rakho, kadam chote rakho, kaam karo bina ruke!'},
+  {e:'🦁',t:'Real estate ka sher wahi jo market mein sabse pehle jaata hai!'},
+  {e:'🏡',t:'Har client ke sapne mein aap hi uski neev ho — mazboot bano!'},
 ];
 let _quoteIdx=0,_quoteTimer=null;
 function updateGreeting(){
@@ -1248,18 +1260,22 @@ function updateGreeting(){
   const firstName=(CU.name||'').split(' ')[0]||CU.name;
   greetEl.textContent=`Hello, ${firstName}!`;
 }
+function setQuote(qEl,idx){
+  const q=MOTIVATIONAL_QUOTES[idx];
+  qEl.innerHTML=`<span style="font-size:14px;vertical-align:middle;margin-right:4px">${q.e}</span><span style="color:#0a0f1e;font-weight:600">${q.t}</span>`;
+}
 function startQuoteRotation(){
   const qEl=document.getElementById('tb-quote');
   if(!qEl)return;
   _quoteIdx=Math.floor(Math.random()*MOTIVATIONAL_QUOTES.length);
-  qEl.textContent=MOTIVATIONAL_QUOTES[_quoteIdx];
+  setQuote(qEl,_quoteIdx);
   if(_quoteTimer)clearInterval(_quoteTimer);
   _quoteTimer=setInterval(()=>{
     _quoteIdx=(_quoteIdx+1)%MOTIVATIONAL_QUOTES.length;
     qEl.style.animation='none';
     qEl.offsetHeight; // reflow
     qEl.style.animation='quoteFade 1s ease-in-out';
-    qEl.textContent=MOTIVATIONAL_QUOTES[_quoteIdx];
+    setQuote(qEl,_quoteIdx);
   },6000);
 }
 
@@ -1307,16 +1323,6 @@ function renderDash(){
     <div class="sc c-b" onclick="filterByStatus('all')"><div class="sc-ico">📋</div><div class="sc-v">${tot}</div><div class="sc-l">Total Lead</div></div>`;
 
   renderCalendarView();
-
-  const nm=nowM();
-  const todL=AL.filter(l=>l.next_call===td&&l.status!=='Closed'&&l.status!=='Lost').sort((a,b)=>(a.next_time||'99:99').localeCompare(b.next_time||'99:99'));
-  const priDiv=document.getElementById('d-pri');
-  if(todL.length){
-    priDiv.innerHTML=todL.slice(0,5).map(l=>{
-      let ub='';if(l.next_time){const[h,m]=l.next_time.split(':');const diff=parseInt(h)*60+parseInt(m)-nm;if(diff<=-1)ub='<span class="ubadge" style="background:#fef2f2;color:#dc2626">⚠ Overdue</span>';else if(diff<=30)ub=`<span class="ubadge" style="background:#fff7ed;color:#ea580c">🔥 ${diff}m</span>`;}
-      return `<div class="fuc" style="padding:12px 15px;margin-bottom:8px"><div class="fu-d" style="background:#fff7ed;min-width:52px;padding:9px 12px"><div class="fu-day" style="color:#ea580c;font-size:18px">★</div><div class="fu-mon" style="color:#ea580c">TODAY</div>${l.next_time?`<div class="fu-time" style="background:#fff;color:#ea580c">${fmt12(l.next_time)}</div>`:''}</div><div class="fu-bd"><div class="fu-nm">${l.name}${ub}</div><div class="fu-mt">${uname(l.assign)} · ${l.phone}</div></div><div class="fu-btns"><button class="btn btn-p btn-sm" onclick="openEdit('${l.id}')">✏️</button><button class="btn btn-wa btn-sm" onclick="waReminder('${l.id}')">💬</button></div></div>`;
-    }).join('');
-  }else{priDiv.innerHTML='<div style="padding:20px;color:var(--tx3);font-size:13px;background:#fff;border-radius:var(--rad);border:1px solid var(--bd);text-align:center">✅ No follow-ups today.</div>';}
 
   const rw=document.getElementById('d-inq-body');
   // Show all inquiries sorted by newest first
