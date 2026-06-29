@@ -8,16 +8,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Jay Dwarkadhish Real Estate — CRM v10</title>
-<!-- Preconnect for faster resource loading -->
+<!-- DNS + TCP preconnect for all external domains -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="preconnect" href="https://fwngicuftpodzsfanhfb.supabase.co">
+<link rel="preconnect" href="https://fwngicuftpodzsfanhfb.supabase.co" crossorigin>
 <link rel="dns-prefetch" href="https://jaydwarkadhishrealestate.com">
-<!-- Preload critical font -->
+<!-- Font: non-blocking load -->
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
 <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"></noscript>
-<!-- Scripts with defer for faster page paint -->
+<!-- Supabase: must be sync (used immediately). XLSX+EmailJS: defer (used only after login) -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" defer crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer crossorigin="anonymous"></script>
@@ -54,8 +54,24 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .ld-txt{color:#fff;font-size:16px;font-weight:800;letter-spacing:.3px;}
 .ld-sub{color:rgba(255,255,255,.4);font-size:12px;font-weight:500;}
 .ld-bar-wrap{width:200px;height:3px;background:rgba(255,255,255,.1);border-radius:4px;overflow:hidden;}
-.ld-bar{height:100%;background:linear-gradient(90deg,#818cf8,#a78bfa);border-radius:4px;width:0%;animation:ldprog 1.5s ease-out forwards;}
-@keyframes ldprog{0%{width:0%;}40%{width:70%;}70%{width:85%;}100%{width:95%;}}
+.ld-bar{height:100%;background:linear-gradient(90deg,#818cf8,#a78bfa);border-radius:4px;width:0%;animation:ldprog 1.4s ease-out forwards;}
+@keyframes ldprog{0%{width:0%;}30%{width:60%;}60%{width:80%;}85%{width:92%;}100%{width:96%;}}
+/* ===== FIX: Hide ALL browser scan/lens/3dot icons on images & inputs ===== */
+img { -webkit-user-select:none;user-select:none;pointer-events:none; }
+img.ll-logo, img.lr-logo { -webkit-user-drag:none;user-drag:none; }
+/* Hide Chrome/Edge image lens/search icon */
+img::-webkit-media-controls { display:none!important; }
+/* Hide browser autofill scan & 3-dot on inputs */
+input::-webkit-contacts-auto-fill-button,
+input::-webkit-credentials-auto-fill-button,
+input::-webkit-strong-password-auto-fill-button,
+input::-ms-reveal,
+input::-ms-clear,
+input::-webkit-inner-spin-button { visibility:hidden!important;display:none!important;pointer-events:none!important; }
+/* Prevent Chrome image right-click/search overlay */
+.ll-logo, .lr-logo { display:block;-webkit-touch-callout:none; }
+/* Loader hide: use display:none after gone for perf */
+#ld.gone { opacity:0;pointer-events:none;display:none!important; }
 .ld-retry{display:none;margin-top:8px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);padding:8px 20px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;}
 .ld-retry:hover{background:rgba(255,255,255,.2);color:#fff;}
 
@@ -394,28 +410,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
 .wa-tpl-h{font-size:13px;font-weight:800;color:var(--dk);margin-bottom:6px;}
 .wa-tpl-p{font-size:12px;color:var(--tx2);line-height:1.6;}
 
-/* Hide browser built-in scan icon, camera icon, 3-dot menu on inputs */
-input::-webkit-contacts-auto-fill-button,
-input::-webkit-credentials-auto-fill-button,
-input::-ms-reveal,
-input::-ms-clear,
-input[type="email"]::-webkit-inner-spin-button,
-input[type="email"]::-webkit-outer-spin-button {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-/* Hide Edge/Chrome password manager icon */
-input::-webkit-textfield-decoration-container { display: none !important; }
-/* Disable browser autofill dropdown icon specifically on login */
-#li-em::-webkit-contacts-auto-fill-button { display: none !important; }
-/* Performance: reduce will-change usage */
-.ll-h, .ll-h span { will-change: auto; }
-/* Reduce paint on scroll */
-.sb { will-change: transform; }
-/* Disable pointer-events on loader when gone for instant interaction */
-#ld.gone { display: none !important; }
-
+/* RESPONSIVE */
 @media(max-width:768px){
   .sb{width:272px;transform:translateX(-100%);}
   .sb.on{transform:translateX(0);}
@@ -458,7 +453,7 @@ input::-webkit-textfield-decoration-container { display: none !important; }
 <div id="login">
   <div class="ll">
     <div class="ll-badge">☁️ Cloud CRM v10 • PC + Mobile</div>
-    <img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/04/JD-logo-01-white.png" class="ll-logo" onerror="this.style.display='none'" alt="" loading="lazy" decoding="async">
+    <div style="-webkit-user-select:none;user-select:none;pointer-events:none;"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/04/JD-logo-01-white.png" class="ll-logo" onerror="this.style.display='none'" alt="" draggable="false" loading="lazy"></div>
     <div class="ll-h">Jay <span>Dwarkadhish</span><br>Real Estate</div>
     <div class="ll-sub">Ahmedabad's most trusted real estate brand</div>
     <div class="ll-addr">📍 A 212, West Face, Hebatpur Road, Thaltej<br>Ahmedabad — 380059<br>📞 +91 9998492878</div>
@@ -470,14 +465,14 @@ input::-webkit-textfield-decoration-container { display: none !important; }
   </div>
   <div class="lr">
     <div class="lr-box">
-      <img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" class="lr-logo" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate" loading="eager" fetchpriority="high">
+      <div style="-webkit-user-select:none;user-select:none;pointer-events:none;margin-bottom:4px;margin-top:30px;"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" class="lr-logo" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate" draggable="false" loading="eager" style="margin-top:0"></div>
       <div class="lr-h">Welcome back 👋</div>
       <div class="lr-sub">Sign in to your CRM account</div>
       <div class="cpill">☁️ Cloud Sync — PC &amp; Mobile</div>
       <label class="li-lbl">Email Address</label>
-      <input type="email" id="li-em" class="li-in" placeholder="your@email.com" autocomplete="username" data-form-type="other" spellcheck="false">
+      <input type="email" id="li-em" class="li-in" placeholder="your@email.com" autocomplete="off" data-form-type="other" spellcheck="false" autocorrect="off" autocapitalize="none">
       <label class="li-lbl">Password</label>
-      <input type="password" id="li-pw" class="li-in" placeholder="••••••••" autocomplete="current-password" data-form-type="other">
+      <input type="password" id="li-pw" class="li-in" placeholder="••••••••" autocomplete="new-password" data-form-type="other">
       <div class="li-err" id="li-err">❌ Invalid email or password.</div>
       <button class="li-btn" id="li-btn" onclick="doLogin()">Sign In →</button>
       <div class="li-foot">🔐 Secure Supabase Cloud Access</div>
@@ -990,8 +985,8 @@ function startLdMessages(){
     _ldIdx=(_ldIdx+1)%_ldMsgs.length;
     const el=document.getElementById('ld-sub-txt');
     if(el)el.textContent=_ldMsgs[_ldIdx];
-  },1200);
-  // Agar 5 sec mein load nahi hua to "Reload" button dikhao
+  },1000);
+  // Show reload button after 3s if still loading
   _ldRetryTimer=setTimeout(()=>{
     const btn=document.getElementById('ld-retry');
     if(btn&&document.getElementById('ld')&&!document.getElementById('ld').classList.contains('gone')){
@@ -1174,7 +1169,7 @@ async function doLogin(){
     // Use cached AU if available (prefetched during login page load), else fetch with timeout
     let users=AU.length?AU:null;
     if(!users){
-      try{users=await withTimeout(dbU(),6000);}
+      try{users=await withTimeout(dbU(),4000);}
       catch(e){
         errEl.textContent='❌ Connection timeout. Check internet & retry.';
         errEl.style.display='block';btn.disabled=false;btn.textContent='Sign In →';return;
@@ -2268,7 +2263,7 @@ async function initApp(){
 }
 
 // Timeout wrapper — agar Supabase 8 sec mein jawab nahi deta to error throw karo
-function withTimeout(promise, ms=8000){
+function withTimeout(promise, ms=5000){
   return Promise.race([
     promise,
     new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),ms))
@@ -2278,14 +2273,12 @@ function withTimeout(promise, ms=8000){
 async function loadWithTimeout(){
   try{
     const [users,leads]=await Promise.all([
-      withTimeout(dbU(),8000),
-      withTimeout(dbL(),8000)
+      withTimeout(dbU(),5000),
+      withTimeout(dbL(),5000)
     ]);
     return {users,leads};
   }catch(e){
-    // Timeout ya error — empty data return karo
     console.warn('Load timeout, retrying once...',e);
-    // Ek baar aur try karo
     try{
       const [users,leads]=await Promise.all([dbU(),dbL()]);
       return {users,leads};
