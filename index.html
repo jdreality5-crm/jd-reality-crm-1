@@ -103,7 +103,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t
 .layout{display:flex;min-height:100vh;}
 
 /* SIDEBAR - WHITE THEME */
-.sb{width:var(--sw);background:#fff;border-right:1px solid var(--bd);display:flex;flex-direction:column;position:fixed;inset-y:0;left:0;z-index:400;transition:transform .26s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:2px 0 16px rgba(79,70,229,.06);}
+.sb{width:var(--sw);background:#fff;border-right:1px solid var(--bd);border-top:1px solid var(--bd);display:flex;flex-direction:column;position:fixed;inset-y:0;left:0;z-index:400;transition:transform .26s cubic-bezier(.4,0,.2,1);overflow-y:auto;box-shadow:2px 0 16px rgba(79,70,229,.06);}
 .sb::before{display:none;}
 .sb-head{padding:0;border-bottom:1px solid var(--bd);background:#fff;line-height:0;}
 .sb-brand{display:flex;align-items:center;gap:11px;}
@@ -134,7 +134,7 @@ nav{flex:1;padding:8px 8px;}
 
 /* TOPBAR */
 .main{margin-left:var(--sw);flex:1;display:flex;flex-direction:column;min-width:0;}
-.tb{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:0 24px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;box-shadow:0 2px 12px rgba(79,70,229,.06);}
+.tb{background:rgba(255,255,255,.95);backdrop-filter:blur(20px);border-bottom:1px solid var(--bd);padding:0 24px;height:72px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;box-shadow:0 2px 12px rgba(79,70,229,.06);}
 .tb-l{display:flex;align-items:center;gap:14px;}
 .hbg{display:none;background:none;border:none;cursor:pointer;padding:7px;border-radius:8px;flex-direction:column;gap:4px;}
 .hbg span{display:block;width:20px;height:2px;background:var(--tx2);border-radius:2px;}
@@ -480,7 +480,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
       <div class="ni" id="ni-team" onclick="pg('team',this)"><div class="ni-icon">👥</div><span>Team</span></div>
       <div class="ni" id="ni-admin" onclick="pg('admin',this)" style="display:none"><div class="ni-icon">⚙️</div><span>Admin</span></div>
     </nav>
-    <div class="sb-foot"><button class="lo-btn" onclick="doLogout()">🚪 Sign Out</button></div>
+    <div class="sb-foot" style="display:none"></div>
   </div>
   <div class="main">
     <div class="tb" style="position:relative;">
@@ -774,7 +774,7 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
       </div>
       <div class="malert" id="p-msg"></div>
     </div>
-    <div class="mf"><button class="btn btn-gh" onclick="closeProf()">Close</button><button class="btn btn-p" onclick="changePw()">Save Password</button></div>
+    <div class="mf"><button class="btn" style="background:#fef2f2;color:#dc2626;border:1px solid #fecaca;margin-right:auto" onclick="closeProf();doLogout()">🚪 Sign Out</button><button class="btn btn-gh" onclick="closeProf()">Close</button><button class="btn btn-p" onclick="changePw()">Save Password</button></div>
   </div>
 </div>
 
