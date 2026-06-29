@@ -451,8 +451,15 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
 <div id="sy">☁️ Synced</div>
 
 <div id="login">
+  <!-- Signal indicator — top-right corner, no text -->
+  <div style="position:fixed;top:14px;right:18px;z-index:9999;display:flex;align-items:center;gap:5px;">
+    <div style="position:relative;width:14px;height:14px;">
+      <div style="position:absolute;inset:0;border-radius:50%;background:#22c55e;opacity:.35;animation:sigPulse 2s ease-in-out infinite;"></div>
+      <div style="position:absolute;inset:3px;border-radius:50%;background:#22c55e;"></div>
+    </div>
+  </div>
+  <style>@keyframes sigPulse{0%,100%{transform:scale(1);opacity:.35;}50%{transform:scale(2.2);opacity:0;}}</style>
   <div class="ll">
-    <div class="ll-badge">☁️ Cloud CRM v10 • PC + Mobile</div>
     <div style="-webkit-user-select:none;user-select:none;pointer-events:none;"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/04/JD-logo-01-white.png" class="ll-logo" onerror="this.style.display='none'" alt="" draggable="false" loading="lazy"></div>
     <div class="ll-h">Jay <span>Dwarkadhish</span><br>Real Estate</div>
     <div class="ll-sub">Ahmedabad's most trusted real estate brand</div>
@@ -465,17 +472,15 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
   </div>
   <div class="lr">
     <div class="lr-box">
-      <div style="-webkit-user-select:none;user-select:none;pointer-events:none;margin-bottom:4px;margin-top:30px;"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" class="lr-logo" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate" draggable="false" loading="eager" style="margin-top:0"></div>
+      <div style="-webkit-user-select:none;user-select:none;pointer-events:none;margin-bottom:16px;margin-top:30px;"><img src="https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/02/final-logo-01-1.png" class="lr-logo" onerror="this.src='https://jaydwarkadhishrealestate.com/wp-content/uploads/2022/03/logo1.png'" alt="Jay Dwarkadhish Real Estate" draggable="false" loading="eager" style="margin-top:0"></div>
       <div class="lr-h">Welcome back 👋</div>
-      <div class="lr-sub">Sign in to your CRM account</div>
-      <div class="cpill">☁️ Cloud Sync — PC &amp; Mobile</div>
+      <div class="lr-sub" style="margin-bottom:28px;">Sign in to your CRM account</div>
       <label class="li-lbl">Email Address</label>
       <input type="email" id="li-em" class="li-in" placeholder="your@email.com" autocomplete="off" data-form-type="other" spellcheck="false" autocorrect="off" autocapitalize="none">
       <label class="li-lbl">Password</label>
       <input type="password" id="li-pw" class="li-in" placeholder="••••••••" autocomplete="new-password" data-form-type="other">
       <div class="li-err" id="li-err">❌ Invalid email or password.</div>
       <button class="li-btn" id="li-btn" onclick="doLogin()">Sign In →</button>
-      <div class="li-foot">🔐 Secure Supabase Cloud Access</div>
     </div>
   </div>
 </div>
