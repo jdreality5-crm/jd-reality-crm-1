@@ -1458,9 +1458,11 @@ function renderCalendarView(){
   let miniHtml='';
   let monthFuCount=0;
   for(let i=0;i<first;i++){html+=`<div></div>`;miniHtml+=`<div></div>`;}
+  // Role-based filtering: admin sees all leads, agent sees only their assigned leads
+  const calLeads=(CU&&CU.type!=='admin')?AL.filter(l=>l.assign===CU.email):AL;
   for(let d=1;d<=total;d++){
     const dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
-    const cnt=AL.filter(l=>l.next_call===dateStr&&l.status!=='Closed'&&l.status!=='Lost').length;
+    const cnt=calLeads.filter(l=>l.next_call===dateStr&&l.status!=='Closed'&&l.status!=='Lost').length;
     monthFuCount+=cnt;
     const isToday=dateStr===td;
     const hasDot=cnt>0;
@@ -1490,7 +1492,8 @@ function renderCalendarView(){
 }
 
 function calDayClick(dateStr,label){
-  const leads=AL.filter(l=>l.next_call===dateStr&&l.status!=='Closed'&&l.status!=='Lost');
+  const calLeads=(CU&&CU.type!=='admin')?AL.filter(l=>l.assign===CU.email):AL;
+  const leads=calLeads.filter(l=>l.next_call===dateStr&&l.status!=='Closed'&&l.status!=='Lost');
   const panel=document.getElementById('cal-leads-panel');
   document.getElementById('cal-panel-title').textContent=`📅 ${label} — ${leads.length} Lead${leads.length!==1?'s':''}`;
   if(!leads.length){document.getElementById('cal-leads-list').innerHTML='<div style="text-align:center;padding:2rem;color:var(--tx3);font-size:13px">No leads on this date.</div>';panel.style.display='block';return;}
@@ -1987,6 +1990,8 @@ async function changePw(){
       localStorage.setItem('jdcrm_v7',JSON.stringify({email:newEmail,ts:Date.now()}));
     }
     document.getElementById('sb-un').textContent=CU.name;
+    document.getElementById('sb-ur').textContent=CU.role||'Agent';
+    setAv(document.getElementById('sb-av'),CU);
     setAv(document.getElementById('tb-av'),CU);
   }
 
