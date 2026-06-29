@@ -18,6 +18,7 @@
 <!-- Supabase loaded async -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
@@ -660,6 +661,32 @@ tbody td{padding:11px 15px;font-size:13px;vertical-align:middle;}
             <div class="ic"><h4>📥 Export Excel</h4><p>All leads Excel mein download karo.</p><button class="btn btn-p" onclick="exportExcel()">⬇️ Download Excel</button></div>
             <div class="ic"><h4>📤 Export CSV</h4><p>CSV format mein download.</p><button class="btn btn-o2" onclick="exportCSV()">⬇️ Download CSV</button></div>
             <div class="ic"><h4>☁️ Google Drive Backup</h4><p>Excel file seedha Google Drive pe upload hogi (Gmail account se).</p><div style="margin-top:8px"><div style="font-size:11px;color:var(--tx3);margin-bottom:6px">Backup Gmail ID:</div><div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap"><input type="email" id="gdrive-email" placeholder="yourname@gmail.com" style="flex:1;min-width:160px;padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;font-family:inherit;outline:none" onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--bd)'"><button class="btn btn-sm" style="background:#fff;border:1.5px solid var(--bd);color:var(--tx2);font-size:11px" onclick="saveGDriveEmail()">💾 Save</button></div><div id="gdrive-saved-email" style="font-size:11px;color:var(--g);margin-top:4px;font-weight:600"></div></div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn btn-g btn-sm" onclick="gDriveBackup()">☁️ Backup to Drive</button><button class="btn btn-p btn-sm" onclick="window.open('https://drive.google.com','_blank')">📁 Open Drive</button></div><div id="gdrive-status" style="font-size:12px;margin-top:8px;font-weight:600"></div></div>
+
+            <!-- SUPABASE STORAGE BACKUP -->
+            <div class="ic">
+              <h4>🗄️ Supabase Storage Backup</h4>
+              <p>Excel file Supabase cloud storage mein save hogi — unlimited & free.</p>
+              <button class="btn btn-p" onclick="supabaseBackup()" style="margin-top:10px">🗄️ Backup to Supabase</button>
+              <div id="sb-backup-status" style="font-size:12px;margin-top:8px;font-weight:600"></div>
+              <div id="sb-backup-links" style="margin-top:8px"></div>
+            </div>
+
+            <!-- EMAILJS BACKUP -->
+            <div class="ic">
+              <h4>📧 Email Backup</h4>
+              <p>Excel file aapki email pe bhej do — inbox mein hamesha available.</p>
+              <div style="margin-top:8px">
+                <div style="font-size:11px;color:var(--tx3);margin-bottom:5px">Backup Email ID:</div>
+                <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                  <input type="email" id="ejs-email" placeholder="yourname@gmail.com" style="flex:1;min-width:160px;padding:8px 10px;border:1.5px solid var(--bd);border-radius:8px;font-size:12px;font-family:inherit;outline:none" onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='var(--bd)'">
+                  <button class="btn btn-sm" style="background:#fff;border:1.5px solid var(--bd);color:var(--tx2);font-size:11px" onclick="saveEjsEmail()">💾 Save</button>
+                </div>
+                <div id="ejs-saved-email" style="font-size:11px;color:var(--g);margin-top:4px;font-weight:600"></div>
+              </div>
+              <button class="btn btn-p btn-sm" onclick="emailBackup()" style="margin-top:10px">📧 Send Backup Email</button>
+              <div id="ejs-status" style="font-size:12px;margin-top:8px;font-weight:600"></div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -1660,7 +1687,7 @@ function renderTeam(){
 }
 
 /* ---- ADMIN ---- */
-function admTab(tab,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.getElementById('adm-members').style.display=tab==='members'?'block':'none';document.getElementById('adm-backup').style.display=tab==='backup'?'block':'none';if(tab==='backup')loadGDriveEmail();}
+function admTab(tab,el){document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));el.classList.add('on');document.getElementById('adm-members').style.display=tab==='members'?'block':'none';document.getElementById('adm-backup').style.display=tab==='backup'?'block':'none';if(tab==='backup'){loadGDriveEmail();loadEjsEmail();}}
 function renderAdmin(){
   document.getElementById('mem-body').innerHTML=AU.map(u=>`<tr>
     <td><strong>${u.name}</strong></td>
@@ -1995,6 +2022,126 @@ function getGoogleToken(){
 
 // Legacy backup (keep for compatibility)
 async function gBackup(){gDriveBackup();}
+
+// ---- SUPABASE STORAGE BACKUP ----
+async function supabaseBackup(){
+  const statusEl=document.getElementById('sb-backup-status');
+  const linksEl=document.getElementById('sb-backup-links');
+  if(!AL.length){alert('No leads to backup.');return;}
+  statusEl.style.color='var(--p)';statusEl.textContent='🔄 Creating Excel file...';
+  linksEl.innerHTML='';
+  try{
+    // Build Excel
+    const headers=['Name','Phone','Email','Source','BHK','Budget','Area','Agent','Status','Next Follow-up Date','Next Follow-up Time','Lost Reason','Comments'];
+    const rows=AL.map(l=>[l.name||'',l.phone||'',l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt} ${uname(c.by)}]: ${c.text}`).join(' | ')]);
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet([headers,...rows]);
+    ws['!cols']=[{wch:22},{wch:14},{wch:24},{wch:14},{wch:8},{wch:12},{wch:14},{wch:16},{wch:12},{wch:16},{wch:14},{wch:18},{wch:50}];
+    XLSX.utils.book_append_sheet(wb,ws,'Leads');
+    const xlsxData=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+    const blob=new Blob([xlsxData],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const fileName='backups/JD_CRM_Leads_'+new Date().toISOString().slice(0,19).replace(/:/g,'-')+'.xlsx';
+    statusEl.textContent='📤 Uploading to Supabase Storage...';
+    // Upload to Supabase Storage bucket "crm-backups"
+    const {data,error}=await sb.storage.from('crm-backups').upload(fileName,blob,{contentType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',upsert:true});
+    if(error){
+      // Bucket may not exist — show helpful message
+      if(error.message&&error.message.includes('Bucket not found')){
+        statusEl.style.color='var(--a)';
+        statusEl.textContent='⚠️ Bucket setup needed! Niche diye steps follow karo.';
+        linksEl.innerHTML=`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;font-size:11px;line-height:1.8;margin-top:6px">
+          <b>Ek baar setup (2 min):</b><br>
+          1. <a href="https://supabase.com/dashboard" target="_blank" style="color:var(--p)">supabase.com/dashboard</a> kholo<br>
+          2. Apna project select karo<br>
+          3. Left menu → <b>Storage</b> → <b>New Bucket</b><br>
+          4. Name: <b>crm-backups</b> → Public ✅ ON karo → Create<br>
+          5. Wapas aao aur phir Backup click karo ✅
+        </div>`;
+      }else{
+        statusEl.style.color='var(--r)';statusEl.textContent='❌ Upload failed: '+error.message;
+      }
+      return;
+    }
+    // Get public URL
+    const {data:urlData}=sb.storage.from('crm-backups').getPublicUrl(fileName);
+    statusEl.style.color='var(--g)';statusEl.textContent='✅ Backup saved to Supabase Storage!';
+    linksEl.innerHTML=`<a href="${urlData.publicUrl}" download target="_blank" style="display:inline-flex;align-items:center;gap:6px;background:var(--gl);color:var(--g);border:1px solid #a7f3d0;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;text-decoration:none;margin-top:4px">⬇️ Download Backup File</a>`;
+  }catch(e){
+    statusEl.style.color='var(--r)';statusEl.textContent='❌ Error: '+e.message;
+    console.error('supabaseBackup error:',e);
+  }
+}
+
+// ---- EMAILJS BACKUP ----
+// EmailJS config — fill these after creating free account at emailjs.com
+const EJS_SERVICE_ID='service_jdcrm';    // Your EmailJS Service ID
+const EJS_TEMPLATE_ID='template_jdcrm'; // Your EmailJS Template ID
+const EJS_PUBLIC_KEY='';                 // Your EmailJS Public Key
+
+function saveEjsEmail(){
+  const em=document.getElementById('ejs-email').value.trim();
+  if(!em||!em.includes('@')){alert('Valid email ID enter karo.');return;}
+  localStorage.setItem('jdcrm_ejs_email',em);
+  document.getElementById('ejs-saved-email').textContent='✅ Saved: '+em;
+  setTimeout(()=>{document.getElementById('ejs-saved-email').textContent='Saved: '+em;},2000);
+}
+
+function loadEjsEmail(){
+  const em=localStorage.getItem('jdcrm_ejs_email')||'';
+  if(em){document.getElementById('ejs-email').value=em;document.getElementById('ejs-saved-email').textContent='Saved: '+em;}
+}
+
+async function emailBackup(){
+  const statusEl=document.getElementById('ejs-status');
+  const toEmail=localStorage.getItem('jdcrm_ejs_email')||document.getElementById('ejs-email').value.trim();
+  if(!toEmail){alert('Pehle email ID save karo.');return;}
+  if(!AL.length){alert('No leads to backup.');return;}
+
+  // Build CSV for email attachment (EmailJS free plan supports text, not binary attachments)
+  const cols=['Name','Phone','Email','Source','BHK','Budget','Area','Agent','Status','Next Follow-up','Time','Lost Reason','Comments'];
+  const rows=AL.map(l=>[l.name,l.phone,l.email||'',l.source||'',l.bhk||'',l.budget||'',l.area||'',uname(l.assign),l.status,l.next_call||'',l.next_time?fmt12(l.next_time):'',l.dead_reason||'',(l.comments||[]).map(c=>`[${c.dt}]: ${c.text}`).join(' | ')].map(v=>`"${(v||'').replace(/"/g,'""')}"`).join(','));
+  const csvContent=cols.map(c=>`"${c}"`).join(',')+'\n'+rows.join('\n');
+  const totalLeads=AL.length;
+  const today=new Date().toLocaleDateString('en-IN');
+
+  if(!EJS_PUBLIC_KEY){
+    // Show setup instructions
+    statusEl.style.color='var(--a)';
+    statusEl.textContent='⚠️ EmailJS setup needed!';
+    document.getElementById('ejs-status').insertAdjacentHTML('afterend',`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:12px;font-size:11px;line-height:1.9;margin-top:6px">
+      <b>Free setup (5 min):</b><br>
+      1. <a href="https://www.emailjs.com" target="_blank" style="color:var(--p)">emailjs.com</a> → Free account banao<br>
+      2. <b>Email Services</b> → Gmail add karo → <b>Service ID</b> copy karo<br>
+      3. <b>Email Templates</b> → New Template → variables rakho:<br>
+      &nbsp;&nbsp;<code>{{to_email}}</code>, <code>{{total_leads}}</code>, <code>{{date}}</code>, <code>{{csv_data}}</code><br>
+      4. <b>Account → Public Key</b> copy karo<br>
+      5. CRM file mein yeh 3 lines update karo:<br>
+      &nbsp;&nbsp;<code>EJS_SERVICE_ID='your_service_id'</code><br>
+      &nbsp;&nbsp;<code>EJS_TEMPLATE_ID='your_template_id'</code><br>
+      &nbsp;&nbsp;<code>EJS_PUBLIC_KEY='your_public_key'</code>
+    </div>`);
+    return;
+  }
+
+  statusEl.style.color='var(--p)';statusEl.textContent='📧 Sending email...';
+  try{
+    emailjs.init(EJS_PUBLIC_KEY);
+    const result=await emailjs.send(EJS_SERVICE_ID,EJS_TEMPLATE_ID,{
+      to_email:toEmail,
+      total_leads:totalLeads,
+      date:today,
+      csv_data:csvContent.slice(0,40000) // EmailJS free limit ~50KB
+    });
+    if(result.status===200){
+      statusEl.style.color='var(--g)';statusEl.textContent=`✅ Backup email sent to ${toEmail}!`;
+    }else{
+      statusEl.style.color='var(--r)';statusEl.textContent='❌ Email send failed. Retry karo.';
+    }
+  }catch(e){
+    statusEl.style.color='var(--r)';statusEl.textContent='❌ Error: '+e.message;
+    console.error('emailBackup error:',e);
+  }
+}
 function dlFile(name,content,type){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([content],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{document.body.removeChild(a);URL.revokeObjectURL(a.href);},200);}
 
 // ---- v8 NEW FEATURES ----
